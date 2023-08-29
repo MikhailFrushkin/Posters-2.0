@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QProgressBar, QFileDialog, QMessageBox
 from loguru import logger
 
+from utils.created_list_pdf import created_order
 from utils.created_pdf import created_pdf
 from utils.dow_stickers import main_download_stickers
 from utils.dowloads_files_yzndex import dowloads_files
@@ -268,11 +269,22 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """Ивент на кнопку создать файлы"""
         if self.lineEdit.text():
             try:
-                pass
+                arts = get_art_column_data(self, 1)
+                created_order(arts, self)
             except Exception as ex:
                 logger.debug(ex)
         else:
             QMessageBox.information(self, 'Инфо', 'Загрузите заказ')
+
+def get_art_column_data(self, colum):
+    art_column_data = []
+
+    for row in range(self.model.rowCount()):
+        index = self.model.index(row, colum)  # Индекс ячейки во второй колонке (артикулы)
+        art = index.data(Qt.DisplayRole)
+        art_column_data.append(art)
+
+    return art_column_data
 
 
 if __name__ == '__main__':
