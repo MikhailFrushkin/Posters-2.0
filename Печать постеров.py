@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QProgressBar, QFileDialog, QMessageBox
 from loguru import logger
 
+from utils.created_pdf import created_pdf
 from utils.dow_stickers import main_download_stickers
 from utils.dowloads_files_yzndex import dowloads_files
 from utils.read_excel import read_excel_file
@@ -233,6 +234,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         try:
             logger.debug('Загрузка...')
             dowloads_files(df_new='files/Разница артикулов с гугл.таблицы и на я.диске.xlsx', self=self)
+            created_pdf(self)
+
             self.progress_bar.setValue(100)
 
         except Exception as ex:

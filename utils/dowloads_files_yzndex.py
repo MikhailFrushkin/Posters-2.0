@@ -41,8 +41,6 @@ def rename_files(file_data):
         new_filepath = os.path.join(folder_path, new_filename)
         os.rename(old_filepath, new_filepath)
 
-    print(f"{file_data}\nФайлы переименованы успешно.")
-
 
 def count_objects_in_folders(directory, self=None):
     folder_info = []
@@ -64,7 +62,6 @@ def count_objects_in_folders(directory, self=None):
                 count = 6
             elif value.endswith('10'):
                 count = 10
-        logger.debug(f"Папка: {folder}, Количество объектов: {num_objects} Из {count} постеров")
         try:
             rename_files(count_files_posters(folder, count, self))
         except Exception as ex:
@@ -80,7 +77,6 @@ def dowloads_files(df_new, self=None):
             'limit': 1000,  # Максимальное количество элементов в одном запросе
         }
         response = requests.get(url, headers=headers, params=params)
-        # logger.debug(f'Получен ответ: {response.status_code}')
 
         if response.status_code == 200:
             resource_data = response.json()
@@ -89,8 +85,8 @@ def dowloads_files(df_new, self=None):
                     download_url = item['file']
                     download_response = requests.get(download_url)
                     if download_response.status_code == 200:
-                        if item['name'][0].isdigit() and os.path.splitext(item['name'])[1] == '.png' or \
-                                os.path.splitext(item['name'])[1] == '.jpg':
+                        if item['name'][0].isdigit() and (os.path.splitext(item['name'])[1] == '.png' or \
+                                os.path.splitext(item['name'])[1] == '.jpg'):
                             file_path = os.path.join(source_folder, item['name'])
                             with open(file_path, 'wb') as file:
                                 file.write(download_response.content)
