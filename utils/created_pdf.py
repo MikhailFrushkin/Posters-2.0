@@ -84,13 +84,16 @@ def one_pdf(folder_path, art):
                     with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as temp_file:
                         rotated_image.save(temp_file.name, format='JPEG')
                         c.drawImage(temp_file.name, 0, 0, width=A3[0], height=A3[1])
+                        c.showPage()  # Добавляем новую страницу
                 except Exception as ex:
                     logger.error(ex)
                     with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
                         rotated_image.save(temp_file.name, format='PNG')
                         c.drawImage(temp_file.name, 0, 0, width=A3[0], height=A3[1])
+                        c.showPage()  # Добавляем новую страницу
             else:
                 c.drawImage(poster_file, 0, 0, width=A3[0], height=A3[1])
+                c.showPage()  # Добавляем новую страницу
 
         c.save()
         logger.success(f'Создан файл: {pdf_filename}')
