@@ -12,7 +12,7 @@ from loguru import logger
 from config import token, df_in_xlsx, path_base_y_disc, ready_path, id_google_table, path_root
 
 
-def read_codes_on_google(CREDENTIALS_FILE=f'{path_root}/google_acc.json'):
+def read_codes_on_google(CREDENTIALS_FILE='google_acc.json'):
     os.makedirs('files', exist_ok=True)
     logger.debug('Читаю гугл таблицу')
     spreadsheet_id = f'{id_google_table}'
@@ -45,10 +45,10 @@ def read_codes_on_google(CREDENTIALS_FILE=f'{path_root}/google_acc.json'):
         print("Ошибка: количество столбцов не совпадает с количеством значений.")
     else:
         df = pd.DataFrame(rows, columns=headers)
-        df_in_xlsx(df, 'Таблица гугл')
+        df_in_xlsx(df, 'files\\Таблица гугл')
 
     list_art = []
-    df = pd.read_excel('files/Таблица гугл.xlsx', usecols=['Наименование', 'Артикул на ВБ'],
+    df = pd.read_excel('files\\Таблица гугл.xlsx', usecols=['Наименование', 'Артикул на ВБ'],
                        dtype=str)
     df = df[~df['Артикул на ВБ'].isna() &
             df['Наименование'].apply(lambda x: isinstance(x, str) and not x.startswith('https'))
@@ -91,7 +91,7 @@ async def main_search(self=None):
 
         df = pd.DataFrame(list(result_dict.items()), columns=['Артикул', 'Путь'])
         logger.info('Создан документ Пути к артикулам.xlsx')
-        df_in_xlsx(df, 'Пути к артикулам')
+        df_in_xlsx(df, 'files\\Пути к артикулам')
 
         def get_all_folder_names(directory):
             files_names = []
@@ -103,7 +103,7 @@ async def main_search(self=None):
 
         all_folder_names = get_all_folder_names(ready_path)
         df = df[df['Артикул'].isin(target_folders) & ~df['Артикул'].isin(all_folder_names)]
-        df_in_xlsx(df, 'Разница артикулов с гугл.таблицы и на я.диске')
+        df_in_xlsx(df, 'files\\Разница артикулов с гугл.таблицы и на я.диске')
         return True
 
 

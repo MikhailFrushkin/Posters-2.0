@@ -1,4 +1,6 @@
 import asyncio
+
+import pandas as pd
 from pathlib import Path
 
 import qdarkstyle
@@ -8,6 +10,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QProgressBar, QFileDialog, QMessageBox
 from loguru import logger
 
+from config import main_path
 from utils.created_list_pdf import created_order
 from utils.created_pdf import created_pdf
 from utils.dow_stickers import main_download_stickers
@@ -191,6 +194,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
         self.current_dir = Path.cwd()
+        self.all_files = []
 
         self.headers = ['№', 'Артикул', 'Кол-во', 'Статус']
 
@@ -212,17 +216,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         QApplication.processEvents()
 
     def evt_btn_update(self):
-        # try:
-        #     logger.debug('Скачивание стикеров ШК...')
-        #     main_download_stickers(self)
-        # except Exception as ex:
-        #     logger.error(ex)
-        #
-        # try:
-        #     logger.debug('Проверка готовых pdf файлов...')
-        #     asyncio.run(scan_files(self))
-        # except Exception as ex:
-        #     logger.error(ex)
+        try:
+            logger.debug('Скачивание стикеров ШК...')
+            main_download_stickers(self)
+        except Exception as ex:
+            logger.error(ex)
+
+        try:
+            logger.debug('Проверка готовых pdf файлов...')
+            asyncio.run(scan_files(self))
+        except Exception as ex:
+            logger.error(ex)
 
         try:
             logger.debug('Поиск новых артикулов на Яндекс диске...')
@@ -241,6 +245,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         except Exception as ex:
             logger.error(ex)
+
     def evt_btn_statistic(self):
         pass
 
@@ -252,7 +257,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.lineEdit.setText(res)
                 data = read_excel_file(self.lineEdit.text())
 
-                sorted_data = sorted(data, key=lambda x: x.status)
+                sorted_data = sorted(data, key=lambda x: x.status, reverse=True)
                 self.model = CustomTableModel(sorted_data, self.headers)
 
                 self.tableView.setModel(self.model)
@@ -269,12 +274,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """Ивент на кнопку создать файлы"""
         if self.lineEdit.text():
             try:
-                arts = get_art_column_data(self, 1)
-                created_order(arts, self)
+                df = pd.read_excel(self.lineEdit.text())
+                self.all_files = df['Артикул продавца'].tolist()
+                created_order(self.all_files, self)
+                QMessageBox.information(self, 'Инфо', 'Завершено')
             except Exception as ex:
                 logger.debug(ex)
         else:
             QMessageBox.information(self, 'Инфо', 'Загрузите заказ')
+
 
 def get_art_column_data(self, colum):
     art_column_data = []
