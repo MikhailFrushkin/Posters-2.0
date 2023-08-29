@@ -16,7 +16,7 @@ from utils.created_pdf import created_pdf
 from utils.dow_stickers import main_download_stickers
 from utils.dowloads_files_yzndex import dowloads_files
 from utils.read_excel import read_excel_file
-from utils.search_file_yandex import main_search
+from utils.search_file_yandex import main_search, async_main
 from utils.update_db import scan_files
 
 
@@ -216,6 +216,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         QApplication.processEvents()
 
     def evt_btn_update(self):
+        self.progress_bar.setValue(0)
+
         try:
             logger.debug('Скачивание стикеров ШК...')
             main_download_stickers(self)
@@ -230,8 +232,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         try:
             logger.debug('Поиск новых артикулов на Яндекс диске...')
-            loop = asyncio.get_event_loop()
-            loop.run_until_complete(main_search())
+            asyncio.run(async_main())
 
         except Exception as ex:
             logger.error(ex)
@@ -241,10 +242,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             dowloads_files(df_new='files/Разница артикулов с гугл.таблицы и на я.диске.xlsx', self=self)
             created_pdf(self)
 
-            self.progress_bar.setValue(100)
-
         except Exception as ex:
             logger.error(ex)
+
+        self.progress_bar.setValue(100)
+        QMessageBox.information(self, 'Инфо', 'Обновление завершено')
 
     def evt_btn_statistic(self):
         pass

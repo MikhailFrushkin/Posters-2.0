@@ -52,7 +52,6 @@ async def get_yandex_disk_files(session, token, folder_path):
                                 if not os.path.exists(os.path.join(ready_path, file_name)):
                                     if file_name.split('.')[-1] in ['pdf']:
                                         files_on_yandex_disk.append((file_name, file_path))
-                        print('Найденно новых файлов: ', len(files_on_yandex_disk))
                         # Проверяем, есть ли еще файлы для получения
                         if "offset" in data['_embedded']:
                             params["offset"] = data['_embedded']["offset"] + data['_embedded']["limit"]
@@ -60,6 +59,9 @@ async def get_yandex_disk_files(session, token, folder_path):
                             break
                     else:
                         break
+
+    logger.success(f'Найденно новых файлов: {len(files_on_yandex_disk)}')
+
     return files_on_yandex_disk
 
 

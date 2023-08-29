@@ -80,23 +80,25 @@ def dowloads_files(df_new, self=None):
 
         if response.status_code == 200:
             resource_data = response.json()
+            type_list = [item['type'] for item in resource_data['_embedded']['items']]
+            print(type_list)
             for item in resource_data['_embedded']['items']:
                 if item['type'] == 'file':
                     download_url = item['file']
                     download_response = requests.get(download_url)
                     if download_response.status_code == 200:
-                        if item['name'][0].isdigit() and (os.path.splitext(item['name'])[1] == '.png' or \
-                                os.path.splitext(item['name'])[1] == '.jpg'):
+                        if item['name'][0].isdigit() and (os.path.splitext(item['name'])[1] == '.png' or
+                                                          os.path.splitext(item['name'])[1] == '.jpg') and (
+                                'блюр' not in item['name']):
                             file_path = os.path.join(source_folder, item['name'])
                             with open(file_path, 'wb') as file:
                                 file.write(download_response.content)
                                 logger.success(f'Загружен файл {item["name"]}')
 
-                elif item['type'] == 'dir':
+                elif item['type'] == 'dir' and len(item['name']) < 6:
                     logger.info(f"Переход в папку {item['path']}")
                     download_files(source_folder, target_folder + "/" + item['name'], token)
 
-    folder_path = main_path
     df = pd.read_excel(df_new)
     logger.debug(f'Количество новых артикулов для загрузки: {len(df)}')
     if self:
@@ -105,18 +107,18 @@ def dowloads_files(df_new, self=None):
     for index, row in df.iterrows():
         vpr = row['Артикул']
         target_folder = row['Путь']
-        if not os.path.exists(os.path.join(folder_path, vpr)):
-            os.makedirs(os.path.join(folder_path, vpr))
+        if not os.path.exists(os.path.join(main_path, vpr)):
+            os.makedirs(os.path.join(main_path, vpr))
             logger.debug(f"Скачивание артикула {vpr}")
             try:
-                download_files(os.path.join(folder_path, vpr), target_folder, token)
+                download_files(os.path.join(main_path, vpr), target_folder, token)
                 if self:
                     progress.update_progress()
             except Exception as ex:
-                logger.error(f'Ошибка загрузки {os.path.join(folder_path, vpr)}|{target_folder}|{ex}')
+                logger.error(f'Ошибка загрузки {os.path.join(main_path, vpr)}|{target_folder}|{ex}')
             try:
                 count_objects_in_folders(os.path.join(main_path, vpr))
             except Exception as ex:
                 logger.error(f'Ошибка переименовывания папки {os.path.join(main_path, vpr)} {ex}')
         else:
-            logger.debug(f'Папка существует {os.path.join(folder_path, vpr)}')
+            logger.debug(f'Папка существует {os.path.join(main_path, vpr)}')

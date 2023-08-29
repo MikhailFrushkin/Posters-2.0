@@ -107,6 +107,10 @@ async def main_search(self=None):
         return True
 
 
-if __name__ == '__main__':
+async def async_main():
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(main_search())
+    await main_search()
+
+
+if __name__ == '__main__':
+    asyncio.run(async_main())
