@@ -1,4 +1,6 @@
 import asyncio
+import os
+import shutil
 
 import pandas as pd
 from pathlib import Path
@@ -217,6 +219,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def evt_btn_update(self):
         self.progress_bar.setValue(0)
+        try:
+            shutil.rmtree(main_path, ignore_errors=True)
+        except Exception as ex:
+            logger.error(ex)
 
         try:
             logger.debug('Скачивание стикеров ШК...')
@@ -225,6 +231,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             logger.error(ex)
 
         try:
+            os.makedirs(main_path, exist_ok=True)
             logger.debug('Проверка готовых pdf файлов...')
             asyncio.run(scan_files(self))
         except Exception as ex:
