@@ -227,12 +227,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             logger.error(ex)
 
         try:
+            self.progress_bar.setValue(0)
+
             logger.debug('Скачивание стикеров ШК...')
             main_download_stickers(self)
         except Exception as ex:
             logger.error(ex)
 
         try:
+            self.progress_bar.setValue(0)
+
             os.makedirs(main_path, exist_ok=True)
             logger.debug('Проверка готовых pdf файлов...')
             asyncio.run(scan_files(self))
@@ -240,6 +244,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             logger.error(ex)
 
         try:
+            self.progress_bar.setValue(0)
+
             logger.debug('Поиск новых артикулов на Яндекс диске...')
             asyncio.run(async_main())
 
@@ -247,17 +253,19 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             logger.error(ex)
 
         try:
+            self.progress_bar.setValue(0)
+
             logger.debug('Загрузка...')
             dowloads_files(df_new='files/Разница артикулов с гугл.таблицы и на я.диске.xlsx', self=self)
             created_pdf(self)
         except Exception as ex:
             logger.error(ex)
 
-        self.progress_bar.setValue(100)
         try:
             update_base_postgresql()
         except Exception as ex:
             logger.error(ex)
+        self.progress_bar.setValue(100)
 
         QMessageBox.information(self, 'Инфо', 'Обновление завершено')
 
