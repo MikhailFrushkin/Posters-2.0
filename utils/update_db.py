@@ -9,6 +9,9 @@ from loguru import logger
 from config import token, path_ready_posters_y_disc, ready_path
 
 
+semaphore = asyncio.Semaphore(3)
+
+
 async def get_download_link(session, token, file_path):
     headers = {"Authorization": f"OAuth {token}"}
     url = "https://cloud-api.yandex.net/v1/disk/resources/download"
@@ -65,25 +68,49 @@ async def get_yandex_disk_files(session, token, folder_path):
     return files_on_yandex_disk
 
 
+# async def download_file(session, token, file_name, file_path, local_folder_path, progress=None):
+#     local_filepath = os.path.join(local_folder_path, file_name)
+#     if os.path.exists(local_filepath):
+#         # print(f"Файл '{file_name}' уже существует на компьютере. Пропускаем загрузку.")
+#         return
+#     download_link = await get_download_link(session, token, file_path)
+#
+#     if download_link:
+#         async with session.get(download_link) as response:
+#             if response.status == 200:
+#                 async with aiofiles.open(local_filepath, "wb") as f:
+#                     while True:
+#                         chunk = await response.content.read(8192)
+#                         if not chunk:
+#                             break
+#                         await f.write(chunk)
+#                 print(f"загрузился файл '{file_name}'")
+#             else:
+#                 print(f"Не удалось загрузить файл '{file_name}'. Код ошибки:", response.status)
+#     else:
+#         print(f"Не удалось получить ссылку для скачивания файла '{file_name}'.")
+
+
 async def download_file(session, token, file_name, file_path, local_folder_path, progress=None):
     local_filepath = os.path.join(local_folder_path, file_name)
     if os.path.exists(local_filepath):
-        # print(f"Файл '{file_name}' уже существует на компьютере. Пропускаем загрузку.")
         return
+
     download_link = await get_download_link(session, token, file_path)
 
     if download_link:
-        async with session.get(download_link) as response:
-            if response.status == 200:
-                async with aiofiles.open(local_filepath, "wb") as f:
-                    while True:
-                        chunk = await response.content.read(8192)
-                        if not chunk:
-                            break
-                        await f.write(chunk)
-                print(f"загрузился файл '{file_name}'")
-            else:
-                print(f"Не удалось загрузить файл '{file_name}'. Код ошибки:", response.status)
+        async with semaphore:  # Используйте семафор для ограничения параллельных загрузок
+            async with session.get(download_link) as response:
+                if response.status == 200:
+                    async with aiofiles.open(local_filepath, "wb") as f:
+                        while True:
+                            chunk = await response.content.read(8192)
+                            if not chunk:
+                                break
+                            await f.write(chunk)
+                    print(f"Загружен файл '{file_name}'")
+                else:
+                    print(f"Не удалось загрузить файл '{file_name}'. Код ошибки:", response.status)
     else:
         print(f"Не удалось получить ссылку для скачивания файла '{file_name}'.")
 

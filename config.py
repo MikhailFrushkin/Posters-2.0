@@ -9,6 +9,12 @@ path_root = Path(__file__).resolve().parent
 env = Env()
 env.read_env()
 
+machine_name = env.str('machine_name')
+dbname = env.str('dbname')
+user = env.str('user')
+password = env.str('password')
+host = env.str('host')
+
 token = env.str('token')
 main_path = env.str('main_path')
 ready_path = env.str('ready_path')

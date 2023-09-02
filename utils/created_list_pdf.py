@@ -1,13 +1,15 @@
 import os
 import shutil
 import time
+from datetime import datetime
 
 import PyPDF2
 import pandas as pd
 from PyQt5.QtWidgets import QMessageBox
 from loguru import logger
 
-from config import ready_path, ProgressBar, sticker_path, df_in_xlsx, path_root
+from config import ready_path, ProgressBar, sticker_path, df_in_xlsx, path_root, machine_name
+from db import orders_base_postgresql
 
 
 def find_files_in_directory(directory, file_list):
@@ -55,14 +57,26 @@ def merge_pdfs(input_paths, output_path, count, self):
     split_lists = split_list(input_paths, count)
     progress = ProgressBar(len(input_paths), self, 1)
 
+    all_arts = []
+
     for group_index, current_group_paths in enumerate(split_lists, start=1):
         for index, input_path in enumerate(current_group_paths, start=1):
             try:
                 with open(input_path, 'rb') as pdf_file:
                     pdf_reader = PyPDF2.PdfReader(pdf_file)
-                    # Add all pages from PdfReader to PdfWriter
-                    for page in pdf_reader.pages:
+
+                    for i, page in enumerate(pdf_reader.pages, start=1):
                         pdf_writer.add_page(page)
+
+                    name = os.path.splitext(os.path.basename(input_path))[0]
+                    type_list = 'other'
+                    if '-glos' in name or '-clos' in name or '_glos' in name:
+                        type_list = 'gloss'
+                    else:
+                        type_list = 'mat'
+
+                    all_arts.append((machine_name, name, type_list, i, self.name_doc))
+
             except Exception as ex:
                 os.remove(input_path)
                 logger.error(input_path)
@@ -77,6 +91,10 @@ def merge_pdfs(input_paths, output_path, count, self):
         with open(current_output_path, 'wb') as output_file:
             pdf_writer.write(output_file)
         pdf_writer = PyPDF2.PdfWriter()
+    try:
+        orders_base_postgresql(all_arts)
+    except Exception as ex:
+        logger.error(ex)
 
 
 def created_order(arts, self):
@@ -92,20 +110,8 @@ def created_order(arts, self):
 
     # Создание файлов со стикерами
     if not self.checkBox.isChecked():
-        found_files_all, not_found_files = find_files_in_directory(ready_path, arts)
-        logger.success(f'Длина найденных артикулов {len(found_files_all)}')
-        merge_pdfs(found_files_all, file_new_name, self.spinBox.value(), self)
-        df = pd.DataFrame(not_found_files, columns=['Артикул'])
-        df_in_xlsx(df, 'Файлы на печать\\Не найденные артикула')
-        logger.success('Завершено!')
+        created_mix_files(arts, ' ', self)
 
-        found_files_stickers, not_found_stickers = find_files_in_directory(sticker_path, arts)
-        df = pd.DataFrame(not_found_stickers, columns=['Артикул'])
-        if len(df) > 0:
-            df_in_xlsx(df, 'Файлы на печать\\Не найденные шк')
-
-        if found_files_stickers:
-            merge_pdfs_stickers(found_files_stickers, f'Файлы на печать\\!ШК{type_list}')
     else:
         arts_gloss = [i for i in arts if '-glos' in i.lower() or '-clos' in i.lower() or '_glos' in i.lower()]
         arts_mat = [i for i in arts if '-mat' in i.lower()]
@@ -122,6 +128,7 @@ def created_mix_files(arts: list, name: str, self):
         found_files_all, not_found_files = find_files_in_directory(ready_path, arts)
 
         merge_pdfs(found_files_all, file_new_name, self.spinBox.value(), self)
+
         df = pd.DataFrame(not_found_files, columns=['Артикул'])
         if len(df) > 0:
             df_in_xlsx(df, f'Файлы на печать\\Не найденные артикула {name}')

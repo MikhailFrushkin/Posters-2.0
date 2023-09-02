@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import QProgressBar, QFileDialog, QMessageBox
 from loguru import logger
 
 from config import main_path
+from db import update_base_postgresql
 from utils.created_list_pdf import created_order
 from utils.created_pdf import created_pdf
 from utils.dow_stickers import main_download_stickers
@@ -211,6 +212,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pushButton_4.clicked.connect(self.evt_btn_statistic)
 
         self.dialogs = []
+        self.name_doc = None
 
     def update_progress(self, current_value, total_value):
         progress = int(current_value / total_value * 100)
@@ -248,11 +250,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             logger.debug('Загрузка...')
             dowloads_files(df_new='files/Разница артикулов с гугл.таблицы и на я.диске.xlsx', self=self)
             created_pdf(self)
-
         except Exception as ex:
             logger.error(ex)
 
         self.progress_bar.setValue(100)
+        try:
+            update_base_postgresql()
+        except Exception as ex:
+            logger.error(ex)
+
         QMessageBox.information(self, 'Инфо', 'Обновление завершено')
 
     def evt_btn_statistic(self):
@@ -283,6 +289,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """Ивент на кнопку создать файлы"""
         if self.lineEdit.text():
             try:
+                self.name_doc = os.path.abspath(self.lineEdit.text()).split('\\')[-1].replace('.xlsx', '')
                 df = pd.read_excel(self.lineEdit.text())
                 self.all_files = df['Артикул продавца'].tolist()
                 created_order(self.all_files, self)

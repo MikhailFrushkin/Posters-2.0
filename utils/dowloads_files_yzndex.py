@@ -81,7 +81,6 @@ def dowloads_files(df_new, self=None):
         if response.status_code == 200:
             resource_data = response.json()
             type_list = [item['type'] for item in resource_data['_embedded']['items']]
-            print(type_list)
             for item in resource_data['_embedded']['items']:
                 if item['type'] == 'file':
                     download_url = item['file']
