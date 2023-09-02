@@ -133,7 +133,7 @@ async def scan_files(self=None):
                 os.makedirs(ready_path, exist_ok=True)
                 await download_files_from_yandex_disk(token, files_to_download, ready_path)
             except Exception as ex:
-                logger.error(f'Ошибка  {ex}')
+                logger.error(f'Ошибка  {ex} {files_to_download}')
 
     except Exception as e:
         print(f"Произошла ошибка: {e}")
