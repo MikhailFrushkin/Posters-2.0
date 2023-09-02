@@ -1,14 +1,13 @@
 import os
 import shutil
 import time
-from datetime import datetime
 
 import PyPDF2
 import pandas as pd
 from PyQt5.QtWidgets import QMessageBox
 from loguru import logger
 
-from config import ready_path, ProgressBar, sticker_path, df_in_xlsx, path_root, machine_name
+from config import ready_path, ProgressBar, sticker_path, df_in_xlsx, machine_name
 from db import orders_base_postgresql
 
 
@@ -69,7 +68,6 @@ def merge_pdfs(input_paths, output_path, count, self):
                         pdf_writer.add_page(page)
 
                     name = os.path.splitext(os.path.basename(input_path))[0]
-                    type_list = 'other'
                     if '-glos' in name or '-clos' in name or '_glos' in name:
                         type_list = 'gloss'
                     else:
@@ -104,8 +102,6 @@ def created_order(arts, self):
         pass
 
     time.sleep(2)
-    type_list = ''
-    file_new_name = 'Файлы на печать\\Постеры.pdf'
     os.makedirs('Файлы на печать', exist_ok=True)
 
     # Создание файлов со стикерами
