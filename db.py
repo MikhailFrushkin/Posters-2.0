@@ -92,4 +92,3 @@ if __name__ == '__main__':
     #     with connection.cursor() as cursor:
     #         drop_table_query = "DROP TABLE IF EXISTS orders;"
     #         cursor.execute(drop_table_query)
-    #         print('Таблица удалена')

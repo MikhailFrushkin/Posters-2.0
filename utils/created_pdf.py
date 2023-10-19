@@ -63,7 +63,6 @@ def compression_pdf(pdf_file_path, output_pdf_path):
     # Закрываем исходный PDF
     pdf_document.close()
 
-    print("Готово!")
 
 
 def one_pdf(folder_path, art):

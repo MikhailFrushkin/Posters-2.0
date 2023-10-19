@@ -226,14 +226,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         except Exception as ex:
             logger.error(ex)
 
-        try:
-            self.progress_bar.setValue(0)
-
-            logger.debug('Скачивание стикеров ШК...')
-            main_download_stickers(self)
-        except Exception as ex:
-            logger.error(ex)
-
+        # try:
+        #     self.progress_bar.setValue(0)
+        #
+        #     logger.debug('Скачивание стикеров ШК...')
+        #     main_download_stickers(self)
+        # except Exception as ex:
+        #     logger.error(ex)
+        #
         try:
             self.progress_bar.setValue(0)
 

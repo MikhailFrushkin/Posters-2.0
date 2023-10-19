@@ -25,7 +25,7 @@ def read_codes_on_google(CREDENTIALS_FILE='google_acc.json'):
         service = apiclient.discovery.build('sheets', 'v4', http=httpAuth, static_discovery=False)
         values = service.spreadsheets().values().get(
             spreadsheetId=spreadsheet_id,
-            range='A1:O30000',
+            range='Надо сделать!A1:P30000',
 
         ).execute()
     except Exception as ex:
