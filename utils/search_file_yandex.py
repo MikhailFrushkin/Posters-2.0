@@ -74,7 +74,7 @@ async def traverse_yandex_disk(session, folder_path, result_dict, progress=None)
 
 
 async def main_search(self=None):
-    english_letters_and_digits = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-'
+    english_letters_and_digits = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_@!#$%^&*(){}[]'''
 
     # target_folders = list(map(lambda x: x.lower(), read_codes_on_google()))
     logger.debug('Сканирую Яндекс диск...')
