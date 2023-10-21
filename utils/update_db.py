@@ -104,7 +104,6 @@ async def download_files_from_yandex_disk(token, files_to_download, local_folder
 async def scan_files(self=None):
     try:
         async with aiohttp.ClientSession() as session:
-            logger.debug('Сканирование файлов')
             files_to_download = await get_yandex_disk_files(session, token, path_ready_posters_y_disc)
             try:
                 os.makedirs(ready_path, exist_ok=True)

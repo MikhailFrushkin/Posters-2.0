@@ -104,8 +104,8 @@ def merge_pdfs(input_paths, output_path, count=100):
 
 
 def one_pdf(folder_path, filename):
-    pdf_filename = fr'E:\Новая база\сделать\\{filename}.pdf'
-    pdf_filename_out = fr'E:\Новая база\Готовые pdf\\{filename}.pdf'
+    pdf_filename = fr'D:\\Новая база\\Скачанные файлы\\{filename}.pdf'
+    pdf_filename_out = fr'D:\\Ready pdf compress\\{filename}.pdf'
     if os.path.exists(pdf_filename):
         logger.debug(f'Файл существует: {pdf_filename}')
     else:
@@ -180,13 +180,13 @@ def main(filename):
 
 if __name__ == '__main__':
     # main(r'C:\Users\Михаил\Downloads\1708 новая 5.xlsx')
-    directory = r'E:\\Новая база\\сделать'
-    directory_out = r'E:\\Новая база\\Готовые pdf'
+    directory = r'D:\Новая база\Скачанные файлы'
+    directory_out = r'D:\\Ready pdf compress'
     out_file_list = [i.lower() for i in os.listdir(directory_out)]
     len_files = len(os.listdir(directory))
     for index, i in enumerate(os.listdir(directory), start=1):
         logger.info(f'{index} из {len_files}')
-        filename = f'E:\\Новая база\\сделать\\{i}.pdf'
+        filename = f'D:\\Новая база\\Скачанные файлы\\{i}.pdf'
         if not os.path.exists(filename) and os.path.isdir(os.path.join(directory, i)):
             if not i.lower() + '.pdf' in out_file_list:
                 one_pdf(folder_path=os.path.join(directory, i), filename=i)

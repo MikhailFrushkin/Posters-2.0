@@ -25,31 +25,24 @@ def read_codes_on_google(CREDENTIALS_FILE='google_acc.json'):
         service = apiclient.discovery.build('sheets', 'v4', http=httpAuth, static_discovery=False)
         values = service.spreadsheets().values().get(
             spreadsheetId=spreadsheet_id,
-            range='Надо сделать!A1:P30000',
+            range='Надо сделать',
 
         ).execute()
     except Exception as ex:
         logger.error(f'Ошибка чтения гуглтаблицы {ex}')
     data = values.get('values', [])
-    headers = data[0]
-    for row in data:
-        missing_columns = len(headers) - len(row)
-        if missing_columns > 0:
-            row += [''] * missing_columns
-
     headers = data[0]  # Заголовки столбцов из первого элемента списка значений
+    headers.append(' ')
     rows = data[1:]
     # Проверка количества столбцов и создание DataFrame
-    lines_list = []
     if len(headers) != len(rows[0]):
         print("Ошибка: количество столбцов не совпадает с количеством значений.")
     else:
         df = pd.DataFrame(rows, columns=headers)
-        df_in_xlsx(df, 'files\\Таблица гугл')
+        df_in_xlsx(df, 'Таблица гугл')
 
     list_art = []
-    df = pd.read_excel('files\\Таблица гугл.xlsx', usecols=['Наименование', 'Артикул на ВБ'],
-                       dtype=str)
+
     df = df[~df['Артикул на ВБ'].isna() &
             df['Наименование'].apply(lambda x: isinstance(x, str) and not x.startswith('https'))
             ]
@@ -62,7 +55,7 @@ def read_codes_on_google(CREDENTIALS_FILE='google_acc.json'):
     return list_art
 
 
-async def traverse_yandex_disk(session, folder_path, target_folders, result_dict, progress=None):
+async def traverse_yandex_disk(session, folder_path, result_dict, progress=None):
     url = f"https://cloud-api.yandex.net/v1/disk/resources?path={quote(folder_path)}&limit=1000"
     headers = {"Authorization": f"OAuth {token}"}
     try:
@@ -72,7 +65,7 @@ async def traverse_yandex_disk(session, folder_path, target_folders, result_dict
             for item in data["_embedded"]["items"]:
                 if item["type"] == "dir":
                     result_dict[item["name"].lower()] = item["path"]
-                    task = traverse_yandex_disk(session, item["path"], target_folders, result_dict, progress)
+                    task = traverse_yandex_disk(session, item["path"], result_dict, progress)
                     tasks.append(task)
             if tasks:
                 await asyncio.gather(*tasks)
@@ -81,30 +74,35 @@ async def traverse_yandex_disk(session, folder_path, target_folders, result_dict
 
 
 async def main_search(self=None):
-    target_folders = list(map(lambda x: x.lower(), read_codes_on_google()))
+    english_letters_and_digits = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-'
+
+    # target_folders = list(map(lambda x: x.lower(), read_codes_on_google()))
     logger.debug('Сканирую Яндекс диск...')
-    if target_folders:
-        folder_path = path_base_y_disc
-        result_dict = {}
-        async with aiohttp.ClientSession() as session:
-            await traverse_yandex_disk(session, folder_path, target_folders, result_dict)
+    folder_path = path_base_y_disc
+    result_dict = {}
+    async with aiohttp.ClientSession() as session:
+        await traverse_yandex_disk(session, folder_path, result_dict)
+    print(result_dict)
+    df = pd.DataFrame(list(result_dict.items()), columns=['Артикул', 'Путь'])
+    logger.info('Создан документ Пути к артикулам.xlsx')
+    df_in_xlsx(df, 'Пути к артикулам')
 
-        df = pd.DataFrame(list(result_dict.items()), columns=['Артикул', 'Путь'])
-        logger.info('Создан документ Пути к артикулам.xlsx')
-        df_in_xlsx(df, 'files\\Пути к артикулам')
+    def get_all_folder_names(directory):
+        files_names = []
+        for root, dirs, files in os.walk(directory):
+            for file in files:
+                files_name = file
+                files_names.append(files_name.lower().replace('.pdf', ''))
+        return files_names
 
-        def get_all_folder_names(directory):
-            files_names = []
-            for root, dirs, files in os.walk(directory):
-                for file in files:
-                    files_name = file
-                    files_names.append(files_name.lower().replace('.pdf', ''))
-            return files_names
+    all_folder_names = get_all_folder_names(ready_path)
 
-        all_folder_names = get_all_folder_names(ready_path)
-        df = df[df['Артикул'].isin(target_folders) & ~df['Артикул'].isin(all_folder_names)]
-        df_in_xlsx(df, 'files\\Разница артикулов с гугл.таблицы и на я.диске')
-        return True
+    def contains_only_english_letters_and_digits(s):
+        return all(char in english_letters_and_digits for char in s) and s.count('-') > 1 and s not in all_folder_names
+
+    df = df[df['Артикул'].apply(contains_only_english_letters_and_digits)]
+    df_in_xlsx(df, 'Разница артикулов с гугл.таблицы и на я.диске')
+    return True
 
 
 async def async_main():

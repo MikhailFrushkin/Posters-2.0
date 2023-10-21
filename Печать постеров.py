@@ -226,19 +226,19 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         except Exception as ex:
             logger.error(ex)
 
-        # try:
-        #     self.progress_bar.setValue(0)
-        #
-        #     logger.debug('Скачивание стикеров ШК...')
-        #     main_download_stickers(self)
-        # except Exception as ex:
-        #     logger.error(ex)
-        #
+        try:
+            self.progress_bar.setValue(0)
+
+            logger.debug('Скачивание стикеров ШК...')
+            main_download_stickers(self)
+        except Exception as ex:
+            logger.error(ex)
+
         try:
             self.progress_bar.setValue(0)
 
             os.makedirs(main_path, exist_ok=True)
-            logger.debug('Проверка готовых pdf файлов...')
+            logger.debug('Поиск готовых pdf файлов на сервере...')
             asyncio.run(scan_files(self))
         except Exception as ex:
             logger.error(ex)
@@ -246,7 +246,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         try:
             self.progress_bar.setValue(0)
 
-            logger.debug('Поиск новых артикулов на Яндекс диске...')
+            logger.debug('Поиск новых артикулов на Яндекс диске дизайнеров...')
             asyncio.run(async_main())
 
         except Exception as ex:

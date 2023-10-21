@@ -39,7 +39,7 @@ async def main_search(self=None):
 
     df = pd.DataFrame(list(result_dict.items()), columns=['Имя', 'Путь'])
     logger.info('Создан документ Пути к артикулам.xlsx')
-    df_in_xlsx(df, 'files\\Пути к артикулам')
+    df_in_xlsx(df, 'Пути к артикулам')
 
     return True
 
