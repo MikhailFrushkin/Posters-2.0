@@ -82,7 +82,6 @@ async def main_search(self=None):
     result_dict = {}
     async with aiohttp.ClientSession() as session:
         await traverse_yandex_disk(session, folder_path, result_dict)
-    print(result_dict)
     df = pd.DataFrame(list(result_dict.items()), columns=['Артикул', 'Путь'])
     logger.info('Создан документ Пути к артикулам.xlsx')
     df_in_xlsx(df, 'Пути к артикулам')

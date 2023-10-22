@@ -18,5 +18,6 @@ def main():
     for i in result:
         os.makedirs(os.path.join(directory, i), exist_ok=True)
 
+
 if __name__ == '__main__':
     main()
