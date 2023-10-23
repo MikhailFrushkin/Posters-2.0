@@ -110,7 +110,7 @@ def created_order(arts, self):
 
     else:
         arts_gloss = [i for i in arts if '-glos' in i.lower() or '-clos' in i.lower() or '_glos' in i.lower()]
-        arts_mat = [i for i in arts if '-mat' in i.lower()]
+        arts_mat = [i for i in arts if i.lower().endswith('-mat') or '-mat-' in i.lower()]
         arts_other = [i for i in arts if i not in arts_gloss and i not in arts_mat]
         created_mix_files(arts_gloss, 'Gloss', self)
         created_mix_files(arts_mat, 'Mat', self)
@@ -132,9 +132,11 @@ def created_mix_files(arts: list, name: str, self):
 
         found_files_stickers, not_found_stickers = find_files_in_directory(sticker_path, arts)
         df = pd.DataFrame(not_found_stickers, columns=['Артикул'])
-        if len(df) > 0:
-            df_in_xlsx(df, f'Файлы на печать\\Не найденные шк {name}')
-
+        try:
+            if len(df) > 0:
+                df_in_xlsx(df, f'Не найденные шк {name}', directory='Файлы на печать')
+        except Exception as ex:
+            logger.error(ex)
         if found_files_stickers:
             merge_pdfs_stickers(found_files_stickers, f'Файлы на печать\\!ШК{name}')
     else:

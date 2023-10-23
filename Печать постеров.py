@@ -288,13 +288,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.tableView.setColumnWidth(0, int(self.tableView.width() * 0.1))
                 self.tableView.setColumnWidth(1, int(self.tableView.width() * 0.55))
                 self.tableView.setColumnWidth(2, int(self.tableView.width() * 0.16))
-                self.tableView.setColumnWidth(3, int(self.tableView.width() * 0.16))  # Ширина нового столбца
+                self.tableView.setColumnWidth(3, int(self.tableView.width() * 0.16))
             except Exception as ex:
                 logger.error(f'ошибка чтения xlsx {ex}')
                 QMessageBox.information(self, 'Инфо', f'ошибка чтения xlsx {ex}')
 
     def evt_btn_create_queue(self):
         """Ивент на кнопку создать файлы"""
+        filename = os.path.basename(self.lineEdit.text())
         if self.lineEdit.text():
             try:
                 self.name_doc = os.path.abspath(self.lineEdit.text()).split('\\')[-1].replace('.xlsx', '')
