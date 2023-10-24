@@ -21,7 +21,7 @@ from utils.dowloads_files_yzndex import dowloads_files
 from utils.read_excel import read_excel_file
 from utils.search_file_yandex import main_search, async_main
 from utils.update_db import scan_files
-
+import csv
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -274,10 +274,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def evt_btn_open_file_clicked(self):
         """Ивент на кнопку загрузить файл"""
-        res, _ = QFileDialog.getOpenFileName(self, 'Загрузить файл', str(self.current_dir), 'Лист XLSX (*.xlsx)')
-        if res:
+
+        file_name, _ = QFileDialog.getOpenFileName(self, 'Загрузить файл', str(self.current_dir),
+                                                   'CSV файлы (*.csv *.xlsx)')
+        if file_name:
             try:
-                self.lineEdit.setText(res)
+                self.lineEdit.setText(file_name)
                 data = read_excel_file(self.lineEdit.text())
 
                 sorted_data = sorted(data, key=lambda x: x.status, reverse=True)
@@ -290,7 +292,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.tableView.setColumnWidth(2, int(self.tableView.width() * 0.16))
                 self.tableView.setColumnWidth(3, int(self.tableView.width() * 0.16))
             except Exception as ex:
-                logger.error(f'ошибка чтения xlsx {ex}')
+                logger.error(f'ошибка чтения файла {ex}')
                 QMessageBox.information(self, 'Инфо', f'ошибка чтения xlsx {ex}')
 
     def evt_btn_create_queue(self):
