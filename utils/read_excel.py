@@ -18,8 +18,6 @@ def read_excel_file(file: str) -> List[FilesOnPrint]:
     if file.endswith('.csv'):
         try:
             df = pd.read_csv(file, delimiter=';')
-            print(df)
-            print(df.columns)
             df = df.groupby('Артикул').agg({
                 'Номер заказа': 'count',
             }).reset_index()
@@ -29,12 +27,8 @@ def read_excel_file(file: str) -> List[FilesOnPrint]:
             df = df[mask]
 
             df = df.rename(columns={'Номер заказа': 'Количество', 'Артикул': 'Артикул продавца'})
-            print(df)
-            print(df.columns)
-
         except Exception as ex:
             logger.error(ex)
-
     else:
         try:
             df = pd.read_excel(file)
