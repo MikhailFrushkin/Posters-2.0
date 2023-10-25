@@ -77,7 +77,6 @@ async def main_search(self=None):
     english_letters_and_digits = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_@!#$%^&*(){}[]'''
 
     # target_folders = list(map(lambda x: x.lower(), read_codes_on_google()))
-    logger.debug('Сканирую Яндекс диск...')
     folder_path = path_base_y_disc
     result_dict = {}
     async with aiohttp.ClientSession() as session:

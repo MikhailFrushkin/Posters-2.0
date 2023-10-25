@@ -1,6 +1,8 @@
 import pandas as pd
 import os
 
+from config import ready_path
+
 
 def main():
     df = pd.read_excel('C:\постеры.xlsx')
@@ -8,7 +10,7 @@ def main():
     arts_list_in_file = df['Артикул продавца'].apply(lambda x: x.lower().strip()).tolist()
     # print(arts_list_in_file)
 
-    arts_list_in_folder = [i.lower().replace('.pdf', '') for i in os.listdir('D:\Ready pdf compress')]
+    arts_list_in_folder = [i.lower().replace('.pdf', '') for i in os.listdir(ready_path)]
     # print(arts_list_in_folder)
 
     result = set(arts_list_in_file) - set(arts_list_in_folder)

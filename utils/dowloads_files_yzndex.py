@@ -5,7 +5,7 @@ import requests
 from PyQt5.QtWidgets import QMessageBox
 from loguru import logger
 
-from config import token, main_path, SearchProgress
+from config import token, main_path, SearchProgress, sticker_path
 
 count_glob = 0
 
@@ -80,16 +80,20 @@ def dowloads_files(df_new, self=None):
 
         if response.status_code == 200:
             resource_data = response.json()
-            type_list = [item['type'] for item in resource_data['_embedded']['items']]
             for item in resource_data['_embedded']['items']:
                 if item['type'] == 'file':
                     download_url = item['file']
                     download_response = requests.get(download_url)
                     if download_response.status_code == 200:
-                        if item['name'][0].isdigit() and (os.path.splitext(item['name'])[1] == '.png' or
-                                                          os.path.splitext(item['name'])[1] == '.jpg') and (
+                        if item['name'][0].isdigit() and (item['name'].endswith('.png') or
+                                                          item['name'].endswith('.jpg')) and (
                                 'блюр' not in item['name']):
                             file_path = os.path.join(source_folder, item['name'])
+                            with open(file_path, 'wb') as file:
+                                file.write(download_response.content)
+                                logger.success(f'Загружен файл {item["name"]}')
+                        elif item['name'].endswith('.pdf'):
+                            file_path = os.path.join(sticker_path, item['name'])
                             with open(file_path, 'wb') as file:
                                 file.write(download_response.content)
                                 logger.success(f'Загружен файл {item["name"]}')
