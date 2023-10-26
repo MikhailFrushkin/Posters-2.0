@@ -61,6 +61,8 @@ def merge_pdfs(input_paths, output_path, count, self):
     for group_index, current_group_paths in enumerate(split_lists, start=1):
         for index, input_path in enumerate(current_group_paths, start=1):
             try:
+                filename = input_path.split("\\")[-1]
+                logger.success(f'Добавлен {filename}')
                 with open(input_path, 'rb') as pdf_file:
                     pdf_reader = PyPDF2.PdfReader(pdf_file)
 
@@ -118,7 +120,6 @@ def created_order(arts, self):
 
 
 def created_mix_files(arts: list, name: str, self):
-    logger.debug(arts)
     if len(arts) > 0:
         file_new_name = f'Файлы на печать\\Постеры {name}.pdf'
 
