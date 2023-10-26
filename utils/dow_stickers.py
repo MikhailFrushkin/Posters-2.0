@@ -48,13 +48,13 @@ def compare_files_with_local_directory(service, folder_url: str, local_directory
     local_files = []
     for root, dirs, files in os.walk(local_directory):
         for file in files:
-            local_files.append(file)
+            local_files.append(file.lower())
 
     # Compare the lists of files
     missing_files = []
     for drive_file in drive_files:
         drive_file_name = drive_file['name']
-        if drive_file_name.endswith('.pdf') and drive_file_name not in local_files:
+        if drive_file_name.lower().endswith('.pdf') and drive_file_name.lower() not in local_files:
             missing_files.append(drive_file_name)
 
     return missing_files
@@ -112,8 +112,7 @@ async def download_missing_files_from_drive(folder_url: str, local_directory: st
 
 def main_download_stickers(self=None):
     folder_url = f"https://drive.google.com/drive/folders/{google_sticker_path}"
-    local_directory = f"{sticker_path}"
-    asyncio.run(download_missing_files_from_drive(folder_url, local_directory, self))
+    asyncio.run(download_missing_files_from_drive(folder_url, sticker_path, self))
 
 
 if __name__ == '__main__':
