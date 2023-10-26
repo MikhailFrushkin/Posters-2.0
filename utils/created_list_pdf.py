@@ -89,10 +89,10 @@ def merge_pdfs(input_paths, output_path, count, self):
         with open(current_output_path, 'wb') as output_file:
             pdf_writer.write(output_file)
         pdf_writer = PyPDF2.PdfWriter()
-    try:
-        orders_base_postgresql(all_arts)
-    except Exception as ex:
-        logger.error(ex)
+    # try:
+    #     orders_base_postgresql(all_arts)
+    # except Exception as ex:
+    #     logger.error(ex)
 
 
 def created_order(arts, self):
@@ -118,6 +118,7 @@ def created_order(arts, self):
 
 
 def created_mix_files(arts: list, name: str, self):
+    logger.debug(arts)
     if len(arts) > 0:
         file_new_name = f'Файлы на печать\\Постеры {name}.pdf'
 

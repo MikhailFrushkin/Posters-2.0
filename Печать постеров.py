@@ -281,8 +281,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             try:
                 self.lineEdit.setText(file_name)
                 data = read_excel_file(self.lineEdit.text())
-
-                sorted_data = sorted(data, key=lambda x: x.status, reverse=True)
+                self.all_files = data[1]
+                sorted_data = sorted(data[0], key=lambda x: x.status, reverse=True)
                 self.model = CustomTableModel(sorted_data, self.headers)
 
                 self.tableView.setModel(self.model)
@@ -298,11 +298,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def evt_btn_create_queue(self):
         """Ивент на кнопку создать файлы"""
         filename = os.path.basename(self.lineEdit.text())
-        if self.lineEdit.text():
+        if filename:
             try:
-                self.name_doc = os.path.abspath(self.lineEdit.text()).split('\\')[-1].replace('.xlsx', '')
-                df = pd.read_excel(self.lineEdit.text())
-                self.all_files = df['Артикул продавца'].tolist()
+                self.name_doc = (os.path.abspath(self.lineEdit.text()).split('\\')[-1]
+                                 .replace('.xlsx', '')
+                                 .replace('.csv', ''))
                 created_order(self.all_files, self)
                 QMessageBox.information(self, 'Инфо', 'Завершено')
             except Exception as ex:
