@@ -23,7 +23,6 @@ async def traverse_yandex_disk(session, folder_path, result_dict, offset=0):
             for item in data["_embedded"]["items"]:
                 if item["type"] == "file" and item["name"].endswith(".pdf"):
                     if not os.path.exists(os.path.join(sticker_path, item["name"])):
-                        print(item["name"])
                         result_dict[item["name"].lower()] = item["path"]
                 elif item["type"] == "dir":
                     task = traverse_yandex_disk(session, item["path"], result_dict)
@@ -72,7 +71,6 @@ async def download_file(session, url, filename):
             async with session.get(url, headers=headers) as response:
                 if response.status == 200:
                     full_path = os.path.join(sticker_path, filename)
-                    print(f'Загрузка {filename}')
                     async with aiofiles.open(full_path, 'wb') as f:
                         while True:
                             chunk = await response.content.read(1024)

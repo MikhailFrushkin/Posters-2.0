@@ -342,7 +342,9 @@ def run_script():
 
         logger.success('Поиск новых готовых PDF...')
         try:
-            loop.run_until_complete(async_main_ready_posters())
+            os.makedirs(main_path, exist_ok=True)
+            logger.debug('Поиск готовых pdf файлов на сервере...')
+            asyncio.run(scan_files())
         except Exception as ex:
             logger.error(ex)
 

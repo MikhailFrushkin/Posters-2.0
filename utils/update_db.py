@@ -8,7 +8,6 @@ from loguru import logger
 
 from config import token, path_ready_posters_y_disc, ready_path
 
-
 semaphore = asyncio.Semaphore(3)
 
 
@@ -23,10 +22,11 @@ async def get_download_link(session, token, file_path):
                 data = await response.json()
                 return data["href"]
             else:
-                print(f"Не удалось получить ссылку для скачивания файла '{file_path}'. Код ошибки:", response.status)
+                logger.error(f"Не удалось получить ссылку для скачивания файла '{file_path}'. Код ошибки:",
+                             response.status)
                 return None
     except asyncio.TimeoutError:
-        print(f"Время ожидания ответа от сервера истекло для файла '{file_path}'.")
+        logger.error(f"Время ожидания ответа от сервера истекло для файла '{file_path}'.")
         time.sleep(20)
         return None
 
@@ -85,11 +85,11 @@ async def download_file(session, token, file_name, file_path, local_folder_path,
                             if not chunk:
                                 break
                             await f.write(chunk)
-                    print(f"Загружен файл '{file_name}'")
+                    logger.success(f"Загружен файл '{file_name}'")
                 else:
-                    print(f"Не удалось загрузить файл '{file_name}'. Код ошибки:", response.status)
+                    logger.error(f"Не удалось загрузить файл '{file_name}'. Код ошибки:", response.status)
     else:
-        print(f"Не удалось получить ссылку для скачивания файла '{file_name}'.")
+        logger.error(f"Не удалось получить ссылку для скачивания файла '{file_name}'.")
 
 
 async def download_files_from_yandex_disk(token, files_to_download, local_folder_path=".", progress=None):
@@ -109,10 +109,10 @@ async def scan_files(self=None):
                 os.makedirs(ready_path, exist_ok=True)
                 await download_files_from_yandex_disk(token, files_to_download, ready_path)
             except Exception as ex:
-                logger.error(f'Ошибка  {ex} {files_to_download}')
+                logger.error(f'Ошибка  {ex}')
 
     except Exception as e:
-        print(f"Произошла ошибка: {e}")
+        logger.error(f"Произошла ошибка: {e}")
 
 
 if __name__ == "__main__":

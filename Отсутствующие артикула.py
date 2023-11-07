@@ -5,7 +5,7 @@ from config import ready_path
 
 
 def main():
-    df = pd.read_excel('C:\постеры.xlsx')
+    df = pd.read_excel('E:\постеры.xlsx')
     print(df.columns)
     arts_list_in_file = df['Артикул продавца'].apply(lambda x: x.lower().strip()).tolist()
     # print(arts_list_in_file)
@@ -16,7 +16,8 @@ def main():
     result = set(arts_list_in_file) - set(arts_list_in_folder)
     print(result)
     print(len(result))
-    directory = r'D:\Новая база\Скачанные файлы'
+
+    directory = r'E:\Новая база\Скачанные файлы'
     for i in result:
         os.makedirs(os.path.join(directory, i), exist_ok=True)
 
