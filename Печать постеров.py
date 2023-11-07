@@ -340,7 +340,6 @@ def run_script():
         except Exception as ex:
             logger.error(ex)
 
-        logger.success('Поиск новых готовых PDF...')
         try:
             os.makedirs(main_path, exist_ok=True)
             logger.debug('Поиск готовых pdf файлов на сервере...')

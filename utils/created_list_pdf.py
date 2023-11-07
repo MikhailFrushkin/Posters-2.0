@@ -1,3 +1,4 @@
+import datetime
 import os
 import shutil
 import time
@@ -14,16 +15,21 @@ count_art = 1
 
 
 def find_files_in_directory(directory, file_list):
+    file_dict = {}
     found_files = []
-    not_found_files = file_list[:]
+    not_found_files = []
+
+    for file in os.listdir(directory):
+        if os.path.isfile(os.path.join(directory, file)):
+            file_name = file.replace('.pdf', '').lower()
+            file_dict[file_name] = os.path.join(directory, file)
+
     for poster in file_list:
-        for file in os.listdir(directory):
-            if os.path.isfile(os.path.join(directory, file)):
-                file_name = '.'.join(file.split('.')[:-1]).lower()
-                if poster.lower() == file_name:
-                    found_files.append(os.path.join(directory, file))
-                    not_found_files.remove(poster)
-                    break
+        file_name = poster.lower()
+        if file_name in file_dict:
+            found_files.append(file_dict[file_name])
+        else:
+            not_found_files.append(poster)
 
     return found_files, not_found_files
 
@@ -38,6 +44,7 @@ def merge_pdfs_stickers(arts_paths, output_path):
                 # Add all pages from PdfReader to PdfWriter
                 for page in pdf_reader.pages:
                     pdf_writer.add_page(page)
+            logger.success(f'Добавлен ШК {input_path}')
         except Exception:
             pass
     current_output_path = f"{output_path}.pdf"
@@ -103,8 +110,7 @@ def created_order(arts, self):
         shutil.rmtree('Файлы на печать')
     except:
         pass
-
-    time.sleep(2)
+    time.sleep(1)
     os.makedirs('Файлы на печать', exist_ok=True)
     orders = []
     # Создание файлов со стикерами
@@ -130,7 +136,7 @@ def created_order(arts, self):
 
 
 def created_mix_files(arts: list, name: str, self):
-    if len(arts) > 0:
+    if arts:
         file_new_name = f'Файлы на печать\\Постеры {name}.pdf'
 
         found_files_all, not_found_files = find_files_in_directory(ready_path, arts)
@@ -139,15 +145,18 @@ def created_mix_files(arts: list, name: str, self):
         df = pd.DataFrame(not_found_files, columns=['Артикул'])
         if len(df) > 0:
             df_in_xlsx(df, f'Не найденные артикула {name}', directory='Файлы на печать')
-        logger.debug(f'{name} Завершено!')
 
         found_files_stickers, not_found_stickers = find_files_in_directory(sticker_path, arts)
+
         df = pd.DataFrame(not_found_stickers, columns=['Артикул'])
         try:
             if len(df) > 0:
                 df_in_xlsx(df, f'Не найденные шк {name}', directory='Файлы на печать')
         except Exception as ex:
             logger.error(ex)
+
         if found_files_stickers:
             merge_pdfs_stickers(found_files_stickers, f'Файлы на печать\\!ШК{name}')
+        logger.debug(f'{name} Завершено!')
+
         return order
