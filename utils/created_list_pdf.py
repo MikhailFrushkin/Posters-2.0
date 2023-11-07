@@ -139,7 +139,7 @@ def created_mix_files(arts: list, name: str, self):
         df = pd.DataFrame(not_found_files, columns=['Артикул'])
         if len(df) > 0:
             df_in_xlsx(df, f'Не найденные артикула {name}', directory='Файлы на печать')
-        logger.success(f'{name} Завершено!')
+        logger.debug(f'{name} Завершено!')
 
         found_files_stickers, not_found_stickers = find_files_in_directory(sticker_path, arts)
         df = pd.DataFrame(not_found_stickers, columns=['Артикул'])

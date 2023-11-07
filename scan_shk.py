@@ -1,5 +1,6 @@
 import asyncio
 import os
+import time
 from urllib.parse import quote
 
 import aiofiles
@@ -39,6 +40,7 @@ async def traverse_yandex_disk(session, folder_path, result_dict, offset=0):
 
     except Exception as ex:
         logger.error(f'Ошибка при поиске папки {folder_path} {ex}')
+        time.sleep(10)
 
 
 async def main_search():

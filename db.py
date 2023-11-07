@@ -53,7 +53,6 @@ def orders_base_postgresql(orders):
         "user": user,
         "password": password
     }
-    logger.debug(orders)
     # Создание подключения и контекстного менеджера
     with psycopg2.connect(**db_params) as connection:
         # Создание таблицы, если она не существует
@@ -77,7 +76,6 @@ def orders_base_postgresql(orders):
                 check_query = "SELECT COUNT(*) FROM orders WHERE art = %s AND num_on_list = %s AND name_file = %s;"
                 cursor.execute(check_query, (order[1], order[2], order[5]))
                 count = cursor.fetchone()[0]
-                print(count)
                 if count == 0:
                     orders_list.append((
                         order[0],
@@ -89,7 +87,6 @@ def orders_base_postgresql(orders):
                         lists,
                         datetime.now()
                     ))
-            logger.success(orders_list)
             insert_data_query = (
                 "INSERT INTO orders (machin, art, type_list, num, name_file, num_on_list, lists, update_timestamp)"
                 "VALUES (%s, %s, %s, %s, %s, %s, %s, %s);")

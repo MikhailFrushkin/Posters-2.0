@@ -13,7 +13,6 @@ def read_excel_file(file: str) -> tuple[List[FilesOnPrint], list]:
             if filename.lower() in list(map(str.lower, files)):
                 return os.path.join(root, filename)
         return None
-    logger.debug(file)
     all_files = []
     df = pd.DataFrame()
     if file.endswith('.csv'):
