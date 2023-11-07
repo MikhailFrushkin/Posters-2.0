@@ -1,18 +1,20 @@
 import asyncio
 import os
-import time
 from urllib.parse import quote
 
 import aiofiles
 import aiohttp
-import pandas as pd
 from loguru import logger
 
-from config import token, df_in_xlsx, path_base_y_disc
+from config import token, sticker_path
 
 
-async def traverse_yandex_disk(session, folder_path, result_dict, progress=None):
-    url = f"https://cloud-api.yandex.net/v1/disk/resources?path={quote(folder_path)}&limit=1000"
+semaphore = asyncio.Semaphore(5)
+
+
+async def traverse_yandex_disk(session, folder_path, result_dict, offset=0):
+    limit = 1000
+    url = f"https://cloud-api.yandex.net/v1/disk/resources?path={quote(folder_path)}&limit={limit}"
     headers = {"Authorization": f"OAuth {token}"}
     try:
         async with session.get(url, headers=headers) as response:
@@ -20,41 +22,32 @@ async def traverse_yandex_disk(session, folder_path, result_dict, progress=None)
             tasks = []
             for item in data["_embedded"]["items"]:
                 if item["type"] == "file" and item["name"].endswith(".pdf"):
-                    result_dict[item["name"].lower()] = item["path"]
+                    if not os.path.exists(os.path.join(sticker_path, item["name"])):
+                        print(item["name"])
+                        result_dict[item["name"].lower()] = item["path"]
                 elif item["type"] == "dir":
-                    task = traverse_yandex_disk(session, item["path"], result_dict, progress)
+                    task = traverse_yandex_disk(session, item["path"], result_dict)
                     tasks.append(task)
-
             if tasks:
                 await asyncio.gather(*tasks)
+
+            # Проверяем, есть ли ещё элементы для сканирования
+            total = data["_embedded"]["total"]
+            offset += limit
+            if offset < total:
+                # Рекурсивно вызываем функцию для следующей порции элементов
+                await traverse_yandex_disk(session, folder_path, result_dict, offset)
+
     except Exception as ex:
-        logger.debug(f'Ошибка при поиске папки {folder_path} {ex}')
+        logger.error(f'Ошибка при поиске папки {folder_path} {ex}')
 
 
-async def main_search(self=None):
-    logger.debug('Сканирую Яндекс диск...')
+async def main_search():
     folder_path = '/Значки ANIKOYA  02 23'
     result_dict = {}
     async with aiohttp.ClientSession() as session:
         await traverse_yandex_disk(session, folder_path, result_dict)
-
-    df = pd.DataFrame(list(result_dict.items()), columns=['Имя', 'Путь'])
-    logger.info('Создан документ Пути к артикулам.xlsx')
-    df_in_xlsx(df, 'Пути к артикулам')
-
-    return True
-
-
-async def async_main():
-    loop = asyncio.get_event_loop()
-    await main_search()
-
-
-# Путь к папке, куда будут сохраняться скачанные файлы
-OUTPUT_FOLDER = 'E:\\База значков\\Новые шк'
-
-# Создаем семафор для 10 одновременных запросов
-semaphore = asyncio.Semaphore(10)
+    return result_dict
 
 
 async def get_download_link(session, token, file_path):
@@ -67,11 +60,8 @@ async def get_download_link(session, token, file_path):
             if response.status == 200:
                 data = await response.json()
                 return data["href"]
-            else:
-                return None
     except asyncio.TimeoutError:
-        print(f"Время ожидания ответа от сервера истекло для файла '{file_path}'.")
-        return None
+        logger.error(f"Время ожидания ответа от сервера истекло для файла '{file_path}'.")
 
 
 async def download_file(session, url, filename):
@@ -81,42 +71,33 @@ async def download_file(session, url, filename):
         try:
             async with session.get(url, headers=headers) as response:
                 if response.status == 200:
-                    full_path = os.path.join(OUTPUT_FOLDER, filename)
+                    full_path = os.path.join(sticker_path, filename)
+                    print(f'Загрузка {filename}')
                     async with aiofiles.open(full_path, 'wb') as f:
-                        print(f'Загрузка {filename}')
                         while True:
                             chunk = await response.content.read(1024)
                             if not chunk:
                                 break
                             await f.write(chunk)
         except Exception as e:
-            print(f"Error downloading {filename}: {e}")
+            logger.error(f"Error downloading {filename}: {e}")
 
 
-async def main():
-    # Загрузите таблицу Excel
-    excel_file = pd.read_excel('files\\Пути к артикулам.xlsx')
-
-    # Убедитесь, что папка OUTPUT_FOLDER существует
-    os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+async def main_sh(result_dict):
+    os.makedirs(sticker_path, exist_ok=True)
 
     async with aiohttp.ClientSession() as session:
         tasks = []
-        batch_size = 100
+        batch_size = 10
         current_batch = []
 
-        for index, row in excel_file.iterrows():
-            filename = row['Имя']
-            yandex_disk_path = row['Путь']
-            if not filename in os.listdir(OUTPUT_FOLDER):
+        for filename, yandex_disk_path in result_dict.items():
+            if not filename in os.listdir(sticker_path):
 
-                # Получите ссылку для скачивания файла
                 download_link = await get_download_link(session, token, yandex_disk_path)
                 if download_link:
-                    # Добавьте ссылку и имя файла в текущую партию
                     current_batch.append((download_link, filename))
 
-                    # Если текущая партия достигла размера batch_size, создайте задачи для скачивания
                     if len(current_batch) >= batch_size:
                         download_tasks = [download_file(session, link, name) for link, name in current_batch]
                         tasks.extend(download_tasks)
@@ -130,9 +111,14 @@ async def main():
         await asyncio.gather(*tasks)
 
 
-if __name__ == "__main__":
-    # loop = asyncio.get_event_loop()
-    # loop.run_until_complete(main_search())
+async def async_main_sh():
+    result_dict = await main_search()
+    await main_sh(result_dict)
+    return result_dict
 
+
+if __name__ == "__main__":
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+
+    asyncio.run(async_main_sh())
+    # asyncio.run(main_sh())

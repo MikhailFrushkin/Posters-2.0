@@ -10,6 +10,8 @@ from loguru import logger
 from config import ready_path, ProgressBar, sticker_path, df_in_xlsx, machine_name
 from db import orders_base_postgresql
 
+count_art = 1
+
 
 def find_files_in_directory(directory, file_list):
     found_files = []
@@ -52,6 +54,7 @@ def split_list(lst, num_parts):
 
 
 def merge_pdfs(input_paths, output_path, count, self):
+    global count_art
     pdf_writer = PyPDF2.PdfWriter()
     split_lists = split_list(input_paths, count)
     progress = ProgressBar(len(input_paths), self, 1)
@@ -75,7 +78,8 @@ def merge_pdfs(input_paths, output_path, count, self):
                     else:
                         type_list = 'mat'
 
-                    all_arts.append((machine_name, name, type_list, i, self.name_doc))
+                    all_arts.append((machine_name, name, count_art, type_list, i, self.name_doc))
+                    count_art += 1
 
             except Exception as ex:
                 os.remove(input_path)
@@ -91,10 +95,7 @@ def merge_pdfs(input_paths, output_path, count, self):
         with open(current_output_path, 'wb') as output_file:
             pdf_writer.write(output_file)
         pdf_writer = PyPDF2.PdfWriter()
-    try:
-        orders_base_postgresql(all_arts)
-    except Exception as ex:
-        logger.error(ex)
+    return all_arts
 
 
 def created_order(arts, self):
@@ -105,18 +106,27 @@ def created_order(arts, self):
 
     time.sleep(2)
     os.makedirs('Файлы на печать', exist_ok=True)
-
+    orders = []
     # Создание файлов со стикерами
     if not self.checkBox.isChecked():
-        created_mix_files(arts, ' ', self)
+        orders.extend(created_mix_files(arts, ' ', self))
 
     else:
         arts_gloss = [i for i in arts if '-glos' in i.lower() or '-clos' in i.lower() or '_glos' in i.lower()]
         arts_mat = [i for i in arts if i.lower().endswith('-mat') or '-mat-' in i.lower()]
         arts_other = [i for i in arts if i not in arts_gloss and i not in arts_mat]
-        created_mix_files(arts_gloss, 'Gloss', self)
-        created_mix_files(arts_mat, 'Mat', self)
-        created_mix_files(arts_other, 'Другие', self)
+        if arts_gloss:
+            orders.extend(created_mix_files(arts_gloss, 'Gloss', self))
+        if arts_mat:
+            orders.extend(created_mix_files(arts_mat, 'Mat', self))
+        if arts_other:
+            orders.extend(created_mix_files(arts_other, 'Другие', self))
+    try:
+        orders_base_postgresql(orders)
+        global count_art
+        count_art = 1
+    except Exception as ex:
+        logger.error(ex)
 
 
 def created_mix_files(arts: list, name: str, self):
@@ -125,8 +135,7 @@ def created_mix_files(arts: list, name: str, self):
 
         found_files_all, not_found_files = find_files_in_directory(ready_path, arts)
 
-        merge_pdfs(found_files_all, file_new_name, self.spinBox.value(), self)
-
+        order = merge_pdfs(found_files_all, file_new_name, self.spinBox.value(), self)
         df = pd.DataFrame(not_found_files, columns=['Артикул'])
         if len(df) > 0:
             df_in_xlsx(df, f'Не найденные артикула {name}', directory='Файлы на печать')
@@ -141,5 +150,4 @@ def created_mix_files(arts: list, name: str, self):
             logger.error(ex)
         if found_files_stickers:
             merge_pdfs_stickers(found_files_stickers, f'Файлы на печать\\!ШК{name}')
-    else:
-        return
+        return order

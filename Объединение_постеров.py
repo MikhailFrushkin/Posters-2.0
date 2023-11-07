@@ -103,18 +103,16 @@ def merge_pdfs(input_paths, output_path, count=100):
         pdf_writer = PyPDF2.PdfWriter()
 
 
-def one_pdf(folder_path, filename):
-    pdf_filename = fr'D:\\Новая база\\Скачанные файлы\\{filename}.pdf'
-    pdf_filename_out = fr'D:\\Ready pdf compress\\{filename}.pdf'
-    if os.path.exists(pdf_filename):
-        logger.debug(f'Файл существует: {pdf_filename}')
+def one_pdf(folder_path, pdf_file_path, pdf_file_out_path):
+    if os.path.exists(pdf_file_path):
+        logger.debug(f'Файл существует: {pdf_file_path}')
     else:
         poster_files = glob.glob(f"{folder_path}/*.png") + glob.glob(f"{folder_path}/*.jpg")
         poster_files = sorted(poster_files)
         good_files = []
         for file in poster_files:
             good_files.append(file)
-        c = canvas.Canvas(pdf_filename, pagesize=A3)
+        c = canvas.Canvas(pdf_file_path, pagesize=A3)
         for i, poster_file in enumerate(good_files):
             logger.debug(poster_file)
             image = Image.open(poster_file)
@@ -135,12 +133,12 @@ def one_pdf(folder_path, filename):
             if i != len(poster_files) - 1:
                 c.showPage()
         c.save()
-        logger.success(f'Создан файл: {pdf_filename}')
+        logger.success(f'Создан файл: {pdf_file_path}')
     try:
-        compression_pdf(pdf_filename, pdf_filename_out)
+        compression_pdf(pdf_file_path, pdf_file_out_path)
     except Exception as ex:
         logger.error(ex)
-        logger.error(pdf_filename)
+        logger.error(pdf_file_path)
 
 
 def find_files_in_directory(directory_path, file_list):
@@ -179,17 +177,17 @@ def main(filename):
 
 
 if __name__ == '__main__':
-    # main(r'C:\Users\Михаил\Downloads\1708 новая 5.xlsx')
-    directory = r'D:\Новая база\Скачанные файлы'
-    directory_out = r'D:\\Ready pdf compress'
+    directory = r'E:\Новая база\Скачанные файлы'
+    directory_out = r'E:\Новая база\Готовые pdf'
     out_file_list = [i.lower() for i in os.listdir(directory_out)]
     len_files = len(os.listdir(directory))
     for index, i in enumerate(os.listdir(directory), start=1):
         logger.info(f'{index} из {len_files}')
-        filename = f'D:\\Новая база\\Скачанные файлы\\{i}.pdf'
+        filename = f'{directory}\\{i}.pdf'
         if not os.path.exists(filename) and os.path.isdir(os.path.join(directory, i)):
             if not i.lower() + '.pdf' in out_file_list:
-                one_pdf(folder_path=os.path.join(directory, i), filename=i)
+                one_pdf(folder_path=os.path.join(directory, i),
+                        pdf_file_path=filename, pdf_file_out_path=os.path.join(directory_out, i) + '.pdf')
             else:
                 print(f'файл существует {filename}')
         else:

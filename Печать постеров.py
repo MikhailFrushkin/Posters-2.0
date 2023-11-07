@@ -1,6 +1,8 @@
 import asyncio
 import os
 import shutil
+import time
+from threading import Thread
 
 import pandas as pd
 from pathlib import Path
@@ -14,6 +16,8 @@ from loguru import logger
 
 from config import main_path
 from db import update_base_postgresql
+from scan_ready_posters import async_main_ready_posters
+from scan_shk import async_main_sh
 from utils.created_list_pdf import created_order
 from utils.created_pdf import created_pdf
 from utils.dow_stickers import main_download_stickers
@@ -282,6 +286,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.lineEdit.setText(file_name)
                 data = read_excel_file(self.lineEdit.text())
                 self.all_files = data[1]
+                data[0].reverse()
+                data[1].reverse()
                 sorted_data = sorted(data[0], key=lambda x: x.status, reverse=True)
                 self.model = CustomTableModel(sorted_data, self.headers)
 
@@ -322,6 +328,33 @@ def get_art_column_data(self, colum):
     return art_column_data
 
 
+def run_script():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    while True:
+        logger.success('Обновление...')
+
+        logger.success('Поиск новых стикеров ШК...')
+        try:
+            loop.run_until_complete(async_main_sh())
+        except Exception as ex:
+            logger.error(ex)
+
+        logger.success('Поиск новых готовых PDF...')
+        try:
+            loop.run_until_complete(async_main_ready_posters())
+        except Exception as ex:
+            logger.error(ex)
+
+        try:
+            update_base_postgresql()
+        except Exception as ex:
+            logger.error(ex)
+
+        logger.success('Обновление завершено')
+        time.sleep(3600)
+
+
 if __name__ == '__main__':
     import sys
 
@@ -329,4 +362,7 @@ if __name__ == '__main__':
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     w = MainWindow()
     w.show()
+    script_thread = Thread(target=run_script)
+    script_thread.daemon = True
+    script_thread.start()
     sys.exit(app.exec())

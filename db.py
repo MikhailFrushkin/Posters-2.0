@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 
 import psycopg2
+from loguru import logger
 
 from config import dbname, user, password, host, machine_name, ready_path
 
@@ -52,7 +53,7 @@ def orders_base_postgresql(orders):
         "user": user,
         "password": password
     }
-
+    logger.debug(orders)
     # Создание подключения и контекстного менеджера
     with psycopg2.connect(**db_params) as connection:
         # Создание таблицы, если она не существует
@@ -61,26 +62,45 @@ def orders_base_postgresql(orders):
             machin VARCHAR,
             art VARCHAR,
             type_list VARCHAR,
-            page INT,
+            num INT,
             name_file VARCHAR,
+            num_on_list INT,
+            lists INT,
             update_timestamp TIMESTAMP DEFAULT current_timestamp
         );
         '''
         with connection.cursor() as cursor:
+            orders_list = []
             cursor.execute(create_table_query)
-
+            lists = sum(item[4] for item in orders)
+            for order in orders:
+                check_query = "SELECT COUNT(*) FROM orders WHERE art = %s AND num_on_list = %s AND name_file = %s;"
+                cursor.execute(check_query, (order[1], order[2], order[5]))
+                count = cursor.fetchone()[0]
+                print(count)
+                if count == 0:
+                    orders_list.append((
+                        order[0],
+                        order[1],
+                        order[3],
+                        order[4],
+                        order[5],
+                        order[2],
+                        lists,
+                        datetime.now()
+                    ))
+            logger.success(orders_list)
             insert_data_query = (
-                "INSERT INTO orders (machin, art, type_list, page, name_file)"
-                "VALUES (%s, %s, %s, %s, %s);")
+                "INSERT INTO orders (machin, art, type_list, num, name_file, num_on_list, lists, update_timestamp)"
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s);")
 
-            cursor.executemany(insert_data_query, orders)
-
-        # Подтверждение изменений (commit) выполняется один раз
+            cursor.executemany(insert_data_query, orders_list)
         connection.commit()
 
 
 if __name__ == '__main__':
-    update_base_postgresql()
+    pass
+    # update_base_postgresql()
     # db_params = {
     #     "host": host,
     #     "database": dbname,
