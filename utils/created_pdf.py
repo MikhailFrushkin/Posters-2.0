@@ -64,14 +64,14 @@ def compression_pdf(pdf_file_path, output_pdf_path):
     pdf_document.close()
 
 
-
 def one_pdf(folder_path, art):
     pdf_filename = os.path.join(ready_path, art + '.pdf')
     if os.path.exists(pdf_filename):
         logger.debug(f'Файл существует: {pdf_filename}')
     else:
         good_files = [os.path.join(folder_path, file) for file in os.listdir(folder_path)]
-
+        if not good_files:
+            return
         c = canvas.Canvas(pdf_filename, pagesize=A3)
         for i, poster_file in enumerate(good_files):
             logger.debug(poster_file)
