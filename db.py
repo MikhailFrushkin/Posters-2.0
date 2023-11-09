@@ -90,7 +90,7 @@ def orders_base_postgresql(orders):
             insert_data_query = (
                 "INSERT INTO orders (machin, art, type_list, num, name_file, num_on_list, lists, update_timestamp)"
                 "VALUES (%s, %s, %s, %s, %s, %s, %s, %s);")
-
+            print(len(orders_list))
             cursor.executemany(insert_data_query, orders_list)
         connection.commit()
 

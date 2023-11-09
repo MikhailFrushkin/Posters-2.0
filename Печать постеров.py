@@ -14,10 +14,11 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QProgressBar, QFileDialog, QMessageBox
 from loguru import logger
 
-from config import main_path
+from config import main_path, ready_path
 from db import update_base_postgresql
 from scan_ready_posters import async_main_ready_posters
 from scan_shk import async_main_sh
+from utils.check_pdf import check_pdfs
 from utils.created_list_pdf import created_order
 from utils.created_pdf import created_pdf
 from utils.dow_stickers import main_download_stickers
@@ -332,7 +333,11 @@ def run_script():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     while True:
-        logger.success('Обновление...')
+        logger.success('Проверка файлов на ошибки...')
+        try:
+            check_pdfs(ready_path)
+        except Exception as ex:
+            logger.error(ex)
 
         logger.success('Поиск новых стикеров ШК...')
         try:
@@ -353,7 +358,7 @@ def run_script():
             logger.error(ex)
 
         logger.success('Обновление завершено')
-        time.sleep(3600)
+        time.sleep(1800)
 
 
 if __name__ == '__main__':
