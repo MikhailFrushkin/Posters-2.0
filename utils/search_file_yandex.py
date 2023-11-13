@@ -64,7 +64,8 @@ async def traverse_yandex_disk(session, folder_path, result_dict, progress=None)
             tasks = []
             for item in data["_embedded"]["items"]:
                 if item["type"] == "dir":
-                    result_dict[item["name"].lower()] = item["path"]
+                    if '-' in item['name']:
+                        result_dict[item["name"].lower()] = item["path"]
                     task = traverse_yandex_disk(session, item["path"], result_dict, progress)
                     tasks.append(task)
             if tasks:

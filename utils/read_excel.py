@@ -42,7 +42,7 @@ def read_excel_file(file: str) -> tuple[List[FilesOnPrint], list]:
             logger.error(ex)
     files_on_print = []
     for index, row in df.iterrows():
-        file_on_print = FilesOnPrint(art=row['Артикул продавца'], count=row['Количество'])
+        file_on_print = FilesOnPrint(art=row['Артикул продавца'].strip(), count=row['Количество'])
         files_on_print.append(file_on_print)
 
     for item in files_on_print:
