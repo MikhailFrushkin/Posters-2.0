@@ -330,8 +330,8 @@ def get_art_column_data(self, colum):
 
 
 def run_script():
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    # loop = asyncio.new_event_loop()
+    # asyncio.set_event_loop(loop)
     while True:
         logger.success('Проверка файлов на ошибки...')
         try:
@@ -341,7 +341,8 @@ def run_script():
 
         logger.success('Поиск новых стикеров ШК...')
         try:
-            loop.run_until_complete(async_main_sh())
+            asyncio.run(async_main_sh())
+            # loop.run_until_complete(async_main_sh())
         except Exception as ex:
             logger.error(ex)
 

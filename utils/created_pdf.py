@@ -65,6 +65,8 @@ def compression_pdf(pdf_file_path, output_pdf_path):
 
 
 def one_pdf(folder_path, art):
+    Image.MAX_IMAGE_PIXELS = None
+
     pdf_filename = os.path.join(ready_path, art + '.pdf')
     if os.path.exists(pdf_filename):
         logger.debug(f'Файл существует: {pdf_filename}')

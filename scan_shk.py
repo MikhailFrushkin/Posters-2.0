@@ -39,8 +39,8 @@ async def traverse_yandex_disk(session, folder_path, result_dict, offset=0):
                 await traverse_yandex_disk(session, folder_path, result_dict, offset)
 
     except Exception as ex:
-        logger.error(f'Ошибка при поиске папки {folder_path} {ex}')
-        time.sleep(10)
+        pass
+        # logger.error(f'Ошибка при поиске папки {folder_path} {ex}')
 
 
 async def main_search():
