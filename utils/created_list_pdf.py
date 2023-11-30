@@ -36,12 +36,11 @@ def find_files_in_directory(directory, file_list):
 
 def merge_pdfs_stickers(arts_paths, output_path):
     pdf_writer = PyPDF2.PdfWriter()
+    arts_paths.reverse()
     for index, input_path in enumerate(arts_paths, start=1):
         try:
             with open(input_path, 'rb') as pdf_file:
                 pdf_reader = PyPDF2.PdfReader(pdf_file)
-
-                # Add all pages from PdfReader to PdfWriter
                 for page in pdf_reader.pages:
                     pdf_writer.add_page(page)
             logger.success(f'Добавлен ШК {input_path}')

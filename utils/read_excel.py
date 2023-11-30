@@ -33,11 +33,26 @@ def read_excel_file(file: str) -> tuple[List[FilesOnPrint], list]:
     else:
         try:
             df = pd.read_excel(file)
-            all_files = df['Артикул продавца'].tolist()
-            df = df.groupby('Артикул продавца').agg({
-                'Стикер': 'count',
-            }).reset_index()
-            df = df.rename(columns={'Стикер': 'Количество'})
+            all_files = []
+            columns_list = list(map(str.lower, df.columns))
+            if len(columns_list) == 2:
+                logger.debug(f'Столбцы: {df.columns}')
+                try:
+
+                    df = df.rename(columns={df.columns[0]: 'Артикул продавца', df.columns[1]: 'Количество'})
+                    for index, row in df.iterrows():
+                        all_files.extend([row['Артикул продавца'] for _ in range(row['Количество'])])
+                    print(len(all_files))
+                except Exception as ex:
+                    logger.error(ex)
+                    df = df.rename(columns={'Aртикул': 'Артикул продавца'})
+            else:
+                df = df.groupby('Артикул продавца').agg({
+                    'Стикер': 'count',
+                }).reset_index()
+                df = df.rename(columns={'Стикер': 'Количество'})
+                all_files = df['Артикул продавца'].tolist()
+
         except Exception as ex:
             logger.error(ex)
     files_on_print = []
@@ -53,4 +68,4 @@ def read_excel_file(file: str) -> tuple[List[FilesOnPrint], list]:
 
 
 if __name__ == '__main__':
-    print(read_excel_file('../Заказы.xlsx'))
+    print(read_excel_file('../Заказы2.xlsx'))

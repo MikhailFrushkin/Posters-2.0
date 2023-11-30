@@ -10,7 +10,7 @@ from config import token, main_path, SearchProgress, sticker_path
 count_glob = 0
 
 
-def count_files_posters(folder: str, count_all_files, self) -> tuple:
+def count_files_posters(folder: str, count_all_files, self):
     global count_glob
     exclude_keywords = ['размер', 'титул', 'мокап', 'moc', 'mos', 'рекомен', 'реки', 'подлож', 'шаблон']
     count = 0
@@ -21,7 +21,8 @@ def count_files_posters(folder: str, count_all_files, self) -> tuple:
                 keyword in filename.lower() for keyword in exclude_keywords):
             count += 1
             good_list_files.append(filename)
-
+    if not good_list_files:
+        return None
     count_glob += 1
     if count_all_files and count_all_files != count:
         logger.error(f"{folder} не соответствует количество файлов {count}/{count_all_files}")
@@ -63,7 +64,8 @@ def count_objects_in_folders(directory, self=None):
             elif value.endswith('10'):
                 count = 10
         try:
-            rename_files(count_files_posters(folder, count, self))
+            temp = count_files_posters(folder, count, self)
+            if temp: rename_files(temp)
         except Exception as ex:
             logger.error(ex)
 
