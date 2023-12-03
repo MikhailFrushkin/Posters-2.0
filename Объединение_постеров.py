@@ -104,6 +104,7 @@ def merge_pdfs(input_paths, output_path, count=100):
 
 
 def one_pdf(folder_path, pdf_file_path, pdf_file_out_path):
+    Image.MAX_IMAGE_PIXELS = None
     if os.path.exists(pdf_file_path):
         logger.debug(f'Файл существует: {pdf_file_path}')
     else:
@@ -177,8 +178,8 @@ def main(filename):
 
 
 if __name__ == '__main__':
-    directory = r'E:\Новая база\Скачанные файлы'
-    directory_out = r'E:\Новая база\Готовые pdf'
+    directory = r'D:\Новая база\Скачанные файлы'
+    directory_out = r'D:\Ready pdf compress'
     out_file_list = [i.lower() for i in os.listdir(directory_out)]
     len_files = len(os.listdir(directory))
     for index, i in enumerate(os.listdir(directory), start=1):

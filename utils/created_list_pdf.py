@@ -126,12 +126,14 @@ def created_order(arts, self):
             orders.extend(created_mix_files(arts_mat, 'Mat', self))
         if arts_other:
             orders.extend(created_mix_files(arts_other, 'Другие', self))
-    try:
-        orders_base_postgresql(orders)
-        global count_art
-        count_art = 1
-    except Exception as ex:
-        logger.error(ex)
+
+    if machine_name != 'Ноут':
+        try:
+            orders_base_postgresql(orders)
+            global count_art
+            count_art = 1
+        except Exception as ex:
+            logger.error(ex)
 
 
 def created_mix_files(arts: list, name: str, self):

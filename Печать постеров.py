@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QProgressBar, QFileDialog, QMessageBox
 from loguru import logger
 
-from config import main_path, ready_path
+from config import main_path, ready_path, machine_name
 from db import update_base_postgresql
 from scan_ready_posters import async_main_ready_posters
 from scan_shk import async_main_sh
@@ -58,6 +58,8 @@ class Ui_MainWindow(object):
         self.pushButton.setFlat(False)
         self.pushButton.setObjectName("pushButton")
         self.horizontalLayout_2.addWidget(self.pushButton)
+        if machine_name != 'Ноут':
+            self.pushButton.setEnabled(False)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem)
         self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
@@ -133,7 +135,7 @@ class Ui_MainWindow(object):
         self.checkBox.setIconSize(QtCore.QSize(20, 20))
         self.checkBox.setShortcut("")
         self.checkBox.setCheckable(True)
-        self.checkBox.setChecked(True)
+        self.checkBox.setChecked(False)
         self.checkBox.setAutoRepeat(False)
         self.checkBox.setObjectName("checkBox")
         self.gridLayout.addWidget(self.checkBox, 1, 1, 1, 1)
@@ -164,7 +166,7 @@ class Ui_MainWindow(object):
         self.pushButton.setText(_translate("MainWindow", "Обновить базу"))
         self.pushButton_4.setText(_translate("MainWindow", "Статистика"))
         self.label.setText(_translate("MainWindow", "Загрузите файл заказа Excel"))
-        self.pushButton_2.setText(_translate("MainWindow", "..."))
+        self.pushButton_2.setText(_translate("MainWindow", "Выбрать файл"))
         self.label_2.setText(_translate("MainWindow", "Количество принтеров:"))
         self.label_3.setText(_translate("MainWindow", "Разделят матовые и глянцевые:"))
 
@@ -339,17 +341,22 @@ def run_script():
         except Exception as ex:
             logger.error(ex)
 
-        logger.success('Поиск новых стикеров ШК...')
-        try:
-            asyncio.run(async_main_sh())
-            # loop.run_until_complete(async_main_sh())
-        except Exception as ex:
-            logger.error(ex)
-
         try:
             os.makedirs(main_path, exist_ok=True)
             logger.debug('Поиск готовых pdf файлов на сервере...')
             asyncio.run(scan_files())
+        except Exception as ex:
+            logger.error(ex)
+            time.sleep(180)
+            try:
+                run_script()
+            except Exception as ex:
+                logger.error(ex)
+
+        logger.success('Поиск новых стикеров ШК...')
+        try:
+            asyncio.run(async_main_sh())
+            # loop.run_until_complete(async_main_sh())
         except Exception as ex:
             logger.error(ex)
 
@@ -369,7 +376,8 @@ if __name__ == '__main__':
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     w = MainWindow()
     w.show()
-    # script_thread = Thread(target=run_script)
-    # script_thread.daemon = True
-    # script_thread.start()
+    if machine_name != 'Ноут':
+        script_thread = Thread(target=run_script)
+        script_thread.daemon = True
+        script_thread.start()
     sys.exit(app.exec())

@@ -38,11 +38,9 @@ def read_excel_file(file: str) -> tuple[List[FilesOnPrint], list]:
             if len(columns_list) == 2:
                 logger.debug(f'Столбцы: {df.columns}')
                 try:
-
                     df = df.rename(columns={df.columns[0]: 'Артикул продавца', df.columns[1]: 'Количество'})
                     for index, row in df.iterrows():
                         all_files.extend([row['Артикул продавца'] for _ in range(row['Количество'])])
-                    print(len(all_files))
                 except Exception as ex:
                     logger.error(ex)
                     df = df.rename(columns={'Aртикул': 'Артикул продавца'})

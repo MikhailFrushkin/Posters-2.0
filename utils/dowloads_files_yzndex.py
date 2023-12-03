@@ -26,9 +26,6 @@ def count_files_posters(folder: str, count_all_files, self):
     count_glob += 1
     if count_all_files and count_all_files != count:
         logger.error(f"{folder} не соответствует количество файлов {count}/{count_all_files}")
-        if self:
-            QMessageBox.warning(self, 'Ошибка',
-                                f"{folder} не соответствует количество файлов {count}/{count_all_files}")
     return tuple((folder, good_list_files), )
 
 
