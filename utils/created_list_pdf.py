@@ -106,7 +106,7 @@ def merge_pdfs(input_paths, output_path, count, self):
 
 def created_order(arts, self):
     try:
-        shutil.rmtree('Файлы на печать')
+        shutil.rmtree('Файлы на печать', ignore_errors=True)
     except:
         pass
     time.sleep(1)

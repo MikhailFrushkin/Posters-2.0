@@ -232,24 +232,25 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             shutil.rmtree(main_path, ignore_errors=True)
         except Exception as ex:
             logger.error(ex)
-
-        try:
-            self.progress_bar.setValue(0)
-
-            logger.debug('Скачивание стикеров ШК...')
-            main_download_stickers(self)
-        except Exception as ex:
-            logger.error(ex)
-
-        try:
-            self.progress_bar.setValue(0)
-
-            os.makedirs(main_path, exist_ok=True)
-            logger.debug('Поиск готовых pdf файлов на сервере...')
-            asyncio.run(scan_files(self))
-        except Exception as ex:
-            logger.error(ex)
-
+        os.makedirs(main_path, exist_ok=True)
+        #
+        # try:
+        #     self.progress_bar.setValue(0)
+        #
+        #     logger.debug('Скачивание стикеров ШК...')
+        #     main_download_stickers(self)
+        # except Exception as ex:
+        #     logger.error(ex)
+        #
+        # try:
+        #     self.progress_bar.setValue(0)
+        #
+        #     os.makedirs(main_path, exist_ok=True)
+        #     logger.debug('Поиск готовых pdf файлов на сервере...')
+        #     asyncio.run(scan_files(self))
+        # except Exception as ex:
+        #     logger.error(ex)
+        #
         try:
             self.progress_bar.setValue(0)
 
