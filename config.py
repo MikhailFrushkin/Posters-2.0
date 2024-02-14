@@ -1,7 +1,7 @@
 import os
 from dataclasses import dataclass
 from pathlib import Path
-
+from loguru import logger
 from environs import Env
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
@@ -25,6 +25,11 @@ path_base_y_disc = env.str('path_base_y_disc')
 acrobat_path = env.str('acrobat_path')
 google_sticker_path = env.str('google_sticker_path')
 id_google_table = env.str('id_google_table')
+
+list_dirs = [main_path, ready_path, sticker_path, 'files']
+
+for directory in list_dirs:
+    os.makedirs(directory, exist_ok=True)
 
 
 class ProgressBar:

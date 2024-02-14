@@ -114,7 +114,7 @@ def created_order(arts, self):
     orders = []
     # Создание файлов со стикерами
     if not self.checkBox.isChecked():
-        orders.extend(created_mix_files(arts, ' ', self))
+        orders.extend(created_mix_files(arts, '', self))
 
     else:
         arts_gloss = [i for i in arts if '-glos' in i.lower() or '-clos' in i.lower() or '_glos' in i.lower()]
@@ -127,7 +127,7 @@ def created_order(arts, self):
         if arts_other:
             orders.extend(created_mix_files(arts_other, 'Другие', self))
 
-    if machine_name != 'Ноут':
+    if machine_name != 'Mikhail':
         try:
             orders_base_postgresql(orders)
             global count_art
@@ -145,7 +145,8 @@ def created_mix_files(arts: list, name: str, self):
         order = merge_pdfs(found_files_all, file_new_name, self.spinBox.value(), self)
         df = pd.DataFrame(not_found_files, columns=['Артикул'])
         if len(df) > 0:
-            df_in_xlsx(df, f'Не найденные артикула {name}', directory='Файлы на печать')
+            df_in_xlsx(df, f'Не найденные артикула постеры_{name}_{self.name_doc}_{machine_name}',
+                       directory='Файлы на печать')
 
         found_files_stickers, not_found_stickers = find_files_in_directory(sticker_path, arts)
 

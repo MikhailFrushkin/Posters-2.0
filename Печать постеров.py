@@ -14,10 +14,12 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QProgressBar, QFileDialog, QMessageBox
 from loguru import logger
 
+from api_rest import main_download_site
 from config import main_path, ready_path, machine_name
 from db import update_base_postgresql
 from scan_ready_posters import async_main_ready_posters
 from scan_shk import async_main_sh
+from upload_files import upload_statistic_files_async
 from utils.check_pdf import check_pdfs
 from utils.created_list_pdf import created_order
 from utils.created_pdf import created_pdf
@@ -27,6 +29,7 @@ from utils.read_excel import read_excel_file
 from utils.search_file_yandex import main_search, async_main
 from utils.update_db import scan_files
 import csv
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -58,7 +61,7 @@ class Ui_MainWindow(object):
         self.pushButton.setFlat(False)
         self.pushButton.setObjectName("pushButton")
         self.horizontalLayout_2.addWidget(self.pushButton)
-        if machine_name != 'Ноут':
+        if machine_name != 'Mikhail':
             self.pushButton.setEnabled(False)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem)
@@ -227,11 +230,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         QApplication.processEvents()
 
     def evt_btn_update(self):
+        """Кнопка обновления"""
         self.progress_bar.setValue(0)
-        try:
-            shutil.rmtree(main_path, ignore_errors=True)
-        except Exception as ex:
-            logger.error(ex)
+        shutil.rmtree(main_path, ignore_errors=True)
         os.makedirs(main_path, exist_ok=True)
         #
         # try:
@@ -251,21 +252,27 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # except Exception as ex:
         #     logger.error(ex)
         #
+        # try:
+        #     self.progress_bar.setValue(0)
+        #
+        #     logger.debug('Поиск новых артикулов на Яндекс диске дизайнеров...')
+        #     asyncio.run(async_main())
+        #
+        # except Exception as ex:
+        #     logger.error(ex)
+        #
+        # try:
+        #     self.progress_bar.setValue(0)
+        #
+        #     logger.debug('Загрузка...')
+        #     dowloads_files(df_new='files/Разница артикулов с гугл.таблицы и на я.диске.xlsx', self=self)
+        #     created_pdf(self)
+        # except Exception as ex:
+        #     logger.error(ex)
         try:
             self.progress_bar.setValue(0)
-
-            logger.debug('Поиск новых артикулов на Яндекс диске дизайнеров...')
-            asyncio.run(async_main())
-
-        except Exception as ex:
-            logger.error(ex)
-
-        try:
-            self.progress_bar.setValue(0)
-
             logger.debug('Загрузка...')
-            dowloads_files(df_new='files/Разница артикулов с гугл.таблицы и на я.диске.xlsx', self=self)
-            created_pdf(self)
+            main_download_site()
         except Exception as ex:
             logger.error(ex)
 
@@ -278,6 +285,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         QMessageBox.information(self, 'Инфо', 'Обновление завершено')
 
     def evt_btn_statistic(self):
+        """Кнопка статистики"""
         pass
 
     def evt_btn_open_file_clicked(self):
@@ -317,6 +325,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 QMessageBox.information(self, 'Инфо', 'Завершено')
             except Exception as ex:
                 logger.debug(ex)
+
+            try:
+                asyncio.run(upload_statistic_files_async(self.name_doc))
+            except Exception as ex:
+                logger.error(ex)
+
         else:
             QMessageBox.information(self, 'Инфо', 'Загрузите заказ')
 
@@ -348,11 +362,12 @@ def run_script():
             asyncio.run(scan_files())
         except Exception as ex:
             logger.error(ex)
-            time.sleep(180)
-            try:
-                run_script()
-            except Exception as ex:
-                logger.error(ex)
+
+        try:
+            logger.debug('Загрузка...')
+            main_download_site()
+        except Exception as ex:
+            logger.error(ex)
 
         logger.success('Поиск новых стикеров ШК...')
         try:
@@ -377,7 +392,7 @@ if __name__ == '__main__':
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     w = MainWindow()
     w.show()
-    if machine_name != 'Ноут':
+    if machine_name != 'Mikhail2':
         script_thread = Thread(target=run_script)
         script_thread.daemon = True
         script_thread.start()
