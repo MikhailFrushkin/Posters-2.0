@@ -9,10 +9,10 @@ from loguru import logger
 from config import token, path_ready_posters_y_disc, ready_path
 
 semaphore = asyncio.Semaphore(3)
+headers = {"Authorization": f"OAuth {token}"}
 
 
-async def get_download_link(session, token, file_path):
-    headers = {"Authorization": f"OAuth {token}"}
+async def get_download_link(session, file_path):
     url = "https://cloud-api.yandex.net/v1/disk/resources/download"
     params = {"path": file_path}
 
@@ -31,8 +31,7 @@ async def get_download_link(session, token, file_path):
         return None
 
 
-async def get_yandex_disk_files(session, token, folder_path):
-    headers = {"Authorization": f"OAuth {token}"}
+async def get_yandex_disk_files(session, folder_path):
     url = "https://cloud-api.yandex.net/v1/disk/resources"
     files_on_yandex_disk = []
 
@@ -68,12 +67,12 @@ async def get_yandex_disk_files(session, token, folder_path):
     return files_on_yandex_disk
 
 
-async def download_file(session, token, file_name, file_path, local_folder_path, progress=None):
+async def download_file(session, file_name, file_path, local_folder_path, progress=None):
     local_filepath = os.path.join(local_folder_path, file_name)
     if os.path.exists(local_filepath):
         return
 
-    download_link = await get_download_link(session, token, file_path)
+    download_link = await get_download_link(session, file_path)
 
     if download_link:
         async with semaphore:  # Используйте семафор для ограничения параллельных загрузок
@@ -92,9 +91,9 @@ async def download_file(session, token, file_name, file_path, local_folder_path,
         logger.error(f"Не удалось получить ссылку для скачивания файла '{file_name}'.")
 
 
-async def download_files_from_yandex_disk(token, files_to_download, local_folder_path=".", progress=None):
+async def download_files_from_yandex_disk(files_to_download, local_folder_path=".", progress=None):
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60)) as session:
-        tasks = [download_file(session, token, file_name, file_path, local_folder_path, progress) for
+        tasks = [download_file(session, file_name, file_path, local_folder_path, progress) for
                  file_name, file_path in
                  files_to_download]
 
@@ -104,10 +103,10 @@ async def download_files_from_yandex_disk(token, files_to_download, local_folder
 async def scan_files(self=None):
     try:
         async with aiohttp.ClientSession() as session:
-            files_to_download = await get_yandex_disk_files(session, token, path_ready_posters_y_disc)
+            files_to_download = await get_yandex_disk_files(session, path_ready_posters_y_disc)
             try:
                 os.makedirs(ready_path, exist_ok=True)
-                await download_files_from_yandex_disk(token, files_to_download, ready_path)
+                await download_files_from_yandex_disk(files_to_download, ready_path)
             except Exception as ex:
                 logger.error(f'Ошибка  {ex}')
 

@@ -43,12 +43,12 @@ def merge_pdfs_stickers(arts_paths, output_path):
                 pdf_reader = PyPDF2.PdfReader(pdf_file)
                 for page in pdf_reader.pages:
                     pdf_writer.add_page(page)
-            logger.success(f'Добавлен ШК {input_path}')
         except Exception:
             pass
     current_output_path = f"{output_path}.pdf"
     with open(current_output_path, 'wb') as output_file:
         pdf_writer.write(output_file)
+    logger.success(f'Добавлены ШК')
     PyPDF2.PdfWriter()
 
 
@@ -104,15 +104,14 @@ def merge_pdfs(input_paths, output_path, count, self):
     return all_arts
 
 
-def created_order(arts, self):
-    try:
-        shutil.rmtree('Файлы на печать', ignore_errors=True)
-    except:
-        pass
-    time.sleep(1)
+def created_order(self):
+    arts = []
+    for i in self.all_files:
+        for num in range(i.count):
+            arts.append(i.art)
+    shutil.rmtree('Файлы на печать', ignore_errors=True)
     os.makedirs('Файлы на печать', exist_ok=True)
     orders = []
-    # Создание файлов со стикерами
     if not self.checkBox.isChecked():
         orders.extend(created_mix_files(arts, '', self))
 
@@ -150,10 +149,10 @@ def created_mix_files(arts: list, name: str, self):
 
         found_files_stickers, not_found_stickers = find_files_in_directory(sticker_path, arts)
 
-        df = pd.DataFrame(not_found_stickers, columns=['Артикул'])
+        df_not_found_stickers = pd.DataFrame(not_found_stickers, columns=['Артикул'])
         try:
-            if len(df) > 0:
-                df_in_xlsx(df, f'Не найденные шк {name}', directory='Файлы на печать')
+            if len(df_not_found_stickers) > 0:
+                df_in_xlsx(df_not_found_stickers, f'Не найденные шк {name}', directory='Файлы на печать')
         except Exception as ex:
             logger.error(ex)
 

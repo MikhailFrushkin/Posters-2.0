@@ -179,7 +179,7 @@ def main(filename):
 
 if __name__ == '__main__':
     directory = r'D:\Новая база\Скачанные файлы'
-    directory_out = r'D:\Ready pdf compress'
+    directory_out = r'D:\Новая база\Готовые pdf'
     out_file_list = [i.lower() for i in os.listdir(directory_out)]
     len_files = len(os.listdir(directory))
     for index, i in enumerate(os.listdir(directory), start=1):

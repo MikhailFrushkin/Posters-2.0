@@ -65,7 +65,10 @@ class FilesOnPrint:
     art: str
     count: int
     status: str = '❌'
-    # '✅'
+
+    @staticmethod
+    def set_status(status):
+        return '✅' if status else '❌'
 
 
 def df_in_xlsx(df, filename, directory='files', max_width=50):

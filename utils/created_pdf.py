@@ -76,7 +76,7 @@ def one_pdf(folder_path, art):
             return
         c = canvas.Canvas(pdf_filename, pagesize=A3)
         for i, poster_file in enumerate(good_files):
-            logger.debug(poster_file)
+            # logger.debug(poster_file)
             image = Image.open(poster_file)
             width, height = image.size
             if width > height:
@@ -97,7 +97,7 @@ def one_pdf(folder_path, art):
                 c.showPage()  # Добавляем новую страницу
 
         c.save()
-        logger.success(f'Создан файл: {pdf_filename}')
+        # logger.success(f'Создан файл: {pdf_filename}')
 
         try:
             compression_pdf(pdf_filename, pdf_filename)

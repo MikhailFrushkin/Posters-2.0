@@ -88,7 +88,7 @@ def main_download_site():
     art_list = [i.replace('.pdf', '').upper() for i in os.listdir(ready_path)]
     data = get_products(categories)
 
-    logger.debug(f'Артикулов в ответе с сервера:{len(data)}')
+    logger.debug(f'Артикулов в ответе с сайта:{len(data)}')
     data = [item for item in data if item['art'] not in art_list]
     logger.success(f'Артикулов для загрузки:{len(data)}')
     for item in data:
@@ -110,7 +110,7 @@ def main_download_site():
             if int(art.split('-')[-1]) != count:
                 logger.error(f'Не совпадает кол-во {art}')
         except Exception as ex:
-            logger.error(f'Не понятный размер {ex}')
+            logger.error(f'Не понятный {art} {ex}')
         os.makedirs(folder, exist_ok=True)
         for i in item['url_data']:
             destination_path = os.path.join(folder, i['name'])
@@ -141,10 +141,9 @@ def main_download_site():
             filename = f'{ready_path}\\{art}.pdf'
             logger.debug(filename)
             if not os.path.exists(filename) and os.path.isdir(folder):
-                logger.success(folder)
                 one_pdf(folder_path=folder, art=art)
             else:
-                print(f'файл существует {filename}')
+                logger.error(f'файл существует {filename}')
             logger.success(f'{index}/{count_task} - {item["art"]}')
         except Exception as ex:
             logger.error(ex)

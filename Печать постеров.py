@@ -1,7 +1,9 @@
 import asyncio
+import datetime
 import os
 import shutil
 import time
+from pprint import pprint
 from threading import Thread
 
 import pandas as pd
@@ -15,7 +17,7 @@ from PyQt5.QtWidgets import QProgressBar, QFileDialog, QMessageBox
 from loguru import logger
 
 from api_rest import main_download_site
-from config import main_path, ready_path, machine_name
+from config import main_path, ready_path, machine_name, token
 from db import update_base_postgresql
 from scan_ready_posters import async_main_ready_posters
 from scan_shk import async_main_sh
@@ -61,8 +63,8 @@ class Ui_MainWindow(object):
         self.pushButton.setFlat(False)
         self.pushButton.setObjectName("pushButton")
         self.horizontalLayout_2.addWidget(self.pushButton)
-        if machine_name != 'Mikhail':
-            self.pushButton.setEnabled(False)
+        # if machine_name != 'Mikhail':
+        # self.pushButton.setEnabled(False)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem)
         self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
@@ -234,24 +236,24 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.progress_bar.setValue(0)
         shutil.rmtree(main_path, ignore_errors=True)
         os.makedirs(main_path, exist_ok=True)
-        #
-        # try:
-        #     self.progress_bar.setValue(0)
-        #
-        #     logger.debug('Скачивание стикеров ШК...')
-        #     main_download_stickers(self)
-        # except Exception as ex:
-        #     logger.error(ex)
-        #
-        # try:
-        #     self.progress_bar.setValue(0)
-        #
-        #     os.makedirs(main_path, exist_ok=True)
-        #     logger.debug('Поиск готовых pdf файлов на сервере...')
-        #     asyncio.run(scan_files(self))
-        # except Exception as ex:
-        #     logger.error(ex)
-        #
+
+        try:
+            self.progress_bar.setValue(0)
+
+            logger.debug('Скачивание стикеров ШК...')
+            main_download_stickers(self)
+        except Exception as ex:
+            logger.error(ex)
+
+        try:
+            self.progress_bar.setValue(0)
+
+            os.makedirs(main_path, exist_ok=True)
+            logger.debug('Поиск готовых pdf файлов на сервере...')
+            asyncio.run(scan_files(self))
+        except Exception as ex:
+            logger.error(ex)
+
         # try:
         #     self.progress_bar.setValue(0)
         #
@@ -269,10 +271,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         #     created_pdf(self)
         # except Exception as ex:
         #     logger.error(ex)
+
         try:
             self.progress_bar.setValue(0)
             logger.debug('Загрузка...')
             main_download_site()
+        except Exception as ex:
+            logger.error(ex)
+
+        logger.warning('Поиск новых стикеров ШК на диске сайта')
+        try:
+            asyncio.run(async_main_sh(folder_path='/Новая база (1)/Постеры'))
         except Exception as ex:
             logger.error(ex)
 
@@ -297,10 +306,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             try:
                 self.lineEdit.setText(file_name)
                 data = read_excel_file(self.lineEdit.text())
-                self.all_files = data[1]
-                data[0].reverse()
-                data[1].reverse()
-                sorted_data = sorted(data[0], key=lambda x: x.status, reverse=True)
+                self.all_files = data[::-1]
+                sorted_data = sorted(data, key=lambda x: x.status, reverse=True)
                 self.model = CustomTableModel(sorted_data, self.headers)
 
                 self.tableView.setModel(self.model)
@@ -321,7 +328,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.name_doc = (os.path.abspath(self.lineEdit.text()).split('\\')[-1]
                                  .replace('.xlsx', '')
                                  .replace('.csv', ''))
-                created_order(self.all_files, self)
+                created_order(self)
                 QMessageBox.information(self, 'Инфо', 'Завершено')
             except Exception as ex:
                 logger.debug(ex)
@@ -347,10 +354,9 @@ def get_art_column_data(self, colum):
 
 
 def run_script():
-    # loop = asyncio.new_event_loop()
-    # asyncio.set_event_loop(loop)
     while True:
-        logger.success('Проверка файлов на ошибки...')
+        start = datetime.datetime.now()
+        logger.warning('Проверка файлов на ошибки...')
         try:
             check_pdfs(ready_path)
         except Exception as ex:
@@ -358,21 +364,26 @@ def run_script():
 
         try:
             os.makedirs(main_path, exist_ok=True)
-            logger.debug('Поиск готовых pdf файлов на сервере...')
+            logger.warning('Поиск готовых pdf файлов на сервере...')
             asyncio.run(scan_files())
         except Exception as ex:
             logger.error(ex)
 
         try:
-            logger.debug('Загрузка...')
+            logger.warning('Загрузка с сайта')
             main_download_site()
         except Exception as ex:
             logger.error(ex)
 
-        logger.success('Поиск новых стикеров ШК...')
+        logger.warning('Поиск новых стикеров ШК...')
         try:
             asyncio.run(async_main_sh())
-            # loop.run_until_complete(async_main_sh())
+        except Exception as ex:
+            logger.error(ex)
+
+        logger.warning('Поиск новых стикеров ШК на диске сайта')
+        try:
+            asyncio.run(async_main_sh(folder_path='/Новая база (1)/Постеры'))
         except Exception as ex:
             logger.error(ex)
 
@@ -381,18 +392,22 @@ def run_script():
         except Exception as ex:
             logger.error(ex)
 
-        logger.success('Обновление завершено')
+        logger.success(f'Обновление завершено {datetime.datetime.now() - start}')
+
         time.sleep(1800)
 
 
 if __name__ == '__main__':
     import sys
 
+    semaphore = asyncio.Semaphore(3)
+    headers = {"Authorization": f"OAuth {token}"}
+
     app = QtWidgets.QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     w = MainWindow()
     w.show()
-    if machine_name != 'Mikhail2':
+    if machine_name != 'Mikhail':
         script_thread = Thread(target=run_script)
         script_thread.daemon = True
         script_thread.start()
