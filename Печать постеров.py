@@ -2,12 +2,10 @@ import asyncio
 import datetime
 import os
 import shutil
+import sys
 import time
-from pprint import pprint
-from threading import Thread
-
-import pandas as pd
 from pathlib import Path
+from threading import Thread
 
 import qdarkstyle
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -17,20 +15,16 @@ from PyQt5.QtWidgets import QProgressBar, QFileDialog, QMessageBox
 from loguru import logger
 
 from api_rest import main_download_site
-from config import main_path, ready_path, machine_name, token
+from config import main_path, ready_path, machine_name, token, admin_name
 from db import update_base_postgresql
-from scan_ready_posters import async_main_ready_posters
 from scan_shk import async_main_sh
 from upload_files import upload_statistic_files_async
 from utils.check_pdf import check_pdfs
 from utils.created_list_pdf import created_order
-from utils.created_pdf import created_pdf
 from utils.dow_stickers import main_download_stickers
-from utils.dowloads_files_yzndex import dowloads_files
 from utils.read_excel import read_excel_file
-from utils.search_file_yandex import main_search, async_main
 from utils.update_db import scan_files
-import csv
+
 
 
 class Ui_MainWindow(object):
@@ -63,8 +57,8 @@ class Ui_MainWindow(object):
         self.pushButton.setFlat(False)
         self.pushButton.setObjectName("pushButton")
         self.horizontalLayout_2.addWidget(self.pushButton)
-        # if machine_name != 'Mikhail':
-        # self.pushButton.setEnabled(False)
+        if machine_name != admin_name:
+            self.pushButton.setEnabled(False)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem)
         self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
@@ -237,13 +231,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         shutil.rmtree(main_path, ignore_errors=True)
         os.makedirs(main_path, exist_ok=True)
 
-        try:
-            self.progress_bar.setValue(0)
-
-            logger.debug('Скачивание стикеров ШК...')
-            main_download_stickers(self)
-        except Exception as ex:
-            logger.error(ex)
+        # try:
+        #     self.progress_bar.setValue(0)
+        #
+        #     logger.debug('Скачивание стикеров ШК...')
+        #     main_download_stickers(self)
+        # except Exception as ex:
+        #     logger.error(ex)
 
         try:
             self.progress_bar.setValue(0)
@@ -279,11 +273,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         except Exception as ex:
             logger.error(ex)
 
-        logger.warning('Поиск новых стикеров ШК на диске сайта')
-        try:
-            asyncio.run(async_main_sh(folder_path='/Новая база (1)/Постеры'))
-        except Exception as ex:
-            logger.error(ex)
+        # logger.warning('Поиск новых стикеров ШК на диске сайта')
+        # try:
+        #     asyncio.run(async_main_sh(folder_path='/Новая база (1)/Постеры'))
+        # except Exception as ex:
+        #     logger.error(ex)
 
         try:
             update_base_postgresql()
@@ -398,8 +392,6 @@ def run_script():
 
 
 if __name__ == '__main__':
-    import sys
-
     semaphore = asyncio.Semaphore(3)
     headers = {"Authorization": f"OAuth {token}"}
 
@@ -407,7 +399,7 @@ if __name__ == '__main__':
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     w = MainWindow()
     w.show()
-    if machine_name != 'Mikhail':
+    if machine_name != admin_name:
         script_thread = Thread(target=run_script)
         script_thread.daemon = True
         script_thread.start()

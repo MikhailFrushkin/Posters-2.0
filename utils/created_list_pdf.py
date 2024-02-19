@@ -8,7 +8,7 @@ import pandas as pd
 from PyQt5.QtWidgets import QMessageBox
 from loguru import logger
 
-from config import ready_path, ProgressBar, sticker_path, df_in_xlsx, machine_name
+from config import ready_path, ProgressBar, sticker_path, df_in_xlsx, machine_name, admin_name
 from db import orders_base_postgresql
 
 count_art = 1
@@ -126,7 +126,7 @@ def created_order(self):
         if arts_other:
             orders.extend(created_mix_files(arts_other, 'Другие', self))
 
-    if machine_name != 'Mikhail':
+    if machine_name != admin_name:
         try:
             orders_base_postgresql(orders)
             global count_art

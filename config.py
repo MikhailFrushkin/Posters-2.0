@@ -27,6 +27,7 @@ google_sticker_path = env.str('google_sticker_path')
 id_google_table = env.str('id_google_table')
 
 list_dirs = [main_path, ready_path, sticker_path, 'files']
+admin_name = 'Ноут'
 
 for directory in list_dirs:
     os.makedirs(directory, exist_ok=True)
