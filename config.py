@@ -19,6 +19,7 @@ host = env.str('host')
 token = env.str('token')
 main_path = env.str('main_path')
 ready_path = env.str('ready_path')
+ready_path_kruzhka = env.str('ready_path_kruzhka')
 sticker_path = env.str('sticker_path')
 path_ready_posters_y_disc = env.str('path_ready_posters_y_disc')
 path_base_y_disc = env.str('path_base_y_disc')
@@ -26,7 +27,7 @@ acrobat_path = env.str('acrobat_path')
 google_sticker_path = env.str('google_sticker_path')
 id_google_table = env.str('id_google_table')
 
-list_dirs = [main_path, ready_path, sticker_path, 'files']
+list_dirs = [main_path, ready_path, ready_path_kruzhka, sticker_path, 'files']
 admin_name = 'Ноут'
 
 for directory in list_dirs:
@@ -65,11 +66,9 @@ class SearchProgress:
 class FilesOnPrint:
     art: str
     count: int
+    file_path: str
     status: str = '❌'
-
-    @staticmethod
-    def set_status(status):
-        return '✅' if status else '❌'
+    type: str = 'Постер'
 
 
 def df_in_xlsx(df, filename, directory='files', max_width=50):

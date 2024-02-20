@@ -5,6 +5,7 @@ import shutil
 import sys
 import time
 from pathlib import Path
+from pprint import pprint
 from threading import Thread
 
 import qdarkstyle
@@ -300,10 +301,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             try:
                 self.lineEdit.setText(file_name)
                 data = read_excel_file(self.lineEdit.text())
-                self.all_files = data[::-1]
-                sorted_data = sorted(data, key=lambda x: x.status, reverse=True)
+                self.all_files = data[1][::-1]
+                pprint(data)
+                sorted_data = sorted(data[0], key=lambda x: x.status, reverse=True)
                 self.model = CustomTableModel(sorted_data, self.headers)
-
+                logger.debug(self.all_files)
                 self.tableView.setModel(self.model)
                 self.tableView.resizeColumnsToContents()
                 self.tableView.setColumnWidth(0, int(self.tableView.width() * 0.1))
@@ -318,14 +320,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """Ивент на кнопку создать файлы"""
         filename = os.path.basename(self.lineEdit.text())
         if filename:
+            self.name_doc = (os.path.abspath(self.lineEdit.text()).split('\\')[-1]
+                             .replace('.xlsx', '')
+                             .replace('.csv', ''))
             try:
-                self.name_doc = (os.path.abspath(self.lineEdit.text()).split('\\')[-1]
-                                 .replace('.xlsx', '')
-                                 .replace('.csv', ''))
                 created_order(self)
-                QMessageBox.information(self, 'Инфо', 'Завершено')
             except Exception as ex:
-                logger.debug(ex)
+                logger.error(ex)
+
+            QMessageBox.information(self, 'Инфо', 'Завершено')
 
             try:
                 asyncio.run(upload_statistic_files_async(self.name_doc))
@@ -400,7 +403,10 @@ if __name__ == '__main__':
     w = MainWindow()
     w.show()
     if machine_name != admin_name:
-        script_thread = Thread(target=run_script)
-        script_thread.daemon = True
-        script_thread.start()
+        if 'кружки' in machine_name.lower():
+            pass
+        else:
+            script_thread = Thread(target=run_script)
+            script_thread.daemon = True
+            script_thread.start()
     sys.exit(app.exec())

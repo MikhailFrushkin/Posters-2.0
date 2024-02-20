@@ -105,26 +105,27 @@ def merge_pdfs(input_paths, output_path, count, self):
 
 
 def created_order(self):
-    arts = []
-    for i in self.all_files:
-        for num in range(i.count):
-            arts.append(i.art)
+    arts_all = self.all_files
     shutil.rmtree('Файлы на печать', ignore_errors=True)
     os.makedirs('Файлы на печать', exist_ok=True)
     orders = []
-    if not self.checkBox.isChecked():
-        orders.extend(created_mix_files(arts, '', self))
+    orders_posters = [i.art for i in arts_all if i.type == 'Постер']
+    orders_kruzhka = [i.art for i in arts_all if i.type == 'Кружка']
 
-    else:
-        arts_gloss = [i for i in arts if '-glos' in i.lower() or '-clos' in i.lower() or '_glos' in i.lower()]
-        arts_mat = [i for i in arts if i.lower().endswith('-mat') or '-mat-' in i.lower()]
-        arts_other = [i for i in arts if i not in arts_gloss and i not in arts_mat]
-        if arts_gloss:
-            orders.extend(created_mix_files(arts_gloss, 'Gloss', self))
-        if arts_mat:
-            orders.extend(created_mix_files(arts_mat, 'Mat', self))
-        if arts_other:
-            orders.extend(created_mix_files(arts_other, 'Другие', self))
+    if orders_posters:
+        if not self.checkBox.isChecked():
+            orders.extend(created_mix_files(orders_posters, '', self))
+
+        else:
+            arts_gloss = [i for i in orders_posters if '-glos' in i.lower() or '-clos' in i.lower() or '_glos' in i.lower()]
+            arts_mat = [i for i in orders_posters if i.lower().endswith('-mat') or '-mat-' in i.lower()]
+            arts_other = [i for i in orders_posters if i not in arts_gloss and i not in arts_mat]
+            if arts_gloss:
+                orders.extend(created_mix_files(arts_gloss, 'Gloss', self))
+            if arts_mat:
+                orders.extend(created_mix_files(arts_mat, 'Mat', self))
+            if arts_other:
+                orders.extend(created_mix_files(arts_other, 'Другие', self))
 
     if machine_name != admin_name:
         try:
