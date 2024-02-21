@@ -4,11 +4,15 @@ import shutil
 import time
 
 import PyPDF2
+import cv2
 import pandas as pd
+from PIL import Image, ImageOps
 from PyQt5.QtWidgets import QMessageBox
 from loguru import logger
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
 
-from config import ready_path, ProgressBar, sticker_path, df_in_xlsx, machine_name, admin_name
+from config import ready_path, ProgressBar, sticker_path, df_in_xlsx, machine_name, admin_name, FilesOnPrint
 from db import orders_base_postgresql
 
 count_art = 1
@@ -110,14 +114,17 @@ def created_order(self):
     os.makedirs('Файлы на печать', exist_ok=True)
     orders = []
     orders_posters = [i.art for i in arts_all if i.type == 'Постер']
-    orders_kruzhka = [i.art for i in arts_all if i.type == 'Кружка']
+    orders_kruzhka = [i for i in arts_all if i.type == 'Кружка']
 
     if orders_posters:
+        logger.debug(orders_posters)
+
         if not self.checkBox.isChecked():
             orders.extend(created_mix_files(orders_posters, '', self))
 
         else:
-            arts_gloss = [i for i in orders_posters if '-glos' in i.lower() or '-clos' in i.lower() or '_glos' in i.lower()]
+            arts_gloss = [i for i in orders_posters if
+                          '-glos' in i.lower() or '-clos' in i.lower() or '_glos' in i.lower()]
             arts_mat = [i for i in orders_posters if i.lower().endswith('-mat') or '-mat-' in i.lower()]
             arts_other = [i for i in orders_posters if i not in arts_gloss and i not in arts_mat]
             if arts_gloss:
@@ -127,13 +134,76 @@ def created_order(self):
             if arts_other:
                 orders.extend(created_mix_files(arts_other, 'Другие', self))
 
+    if orders_kruzhka:
+        logger.debug(orders_kruzhka)
+        created_lists_orders_kruzhka(orders_kruzhka)
+
     if machine_name != admin_name:
-        try:
-            orders_base_postgresql(orders)
-            global count_art
-            count_art = 1
-        except Exception as ex:
-            logger.error(ex)
+        if 'кружки' in machine_name.lower():
+            pass
+        else:
+            try:
+                orders_base_postgresql(orders)
+                global count_art
+                count_art = 1
+            except Exception as ex:
+                logger.error(ex)
+
+
+def chunk_list(lst, chunk_size):
+    for i in range(0, len(lst), chunk_size):
+        yield lst[i:i + chunk_size]
+
+
+def created_lists_orders_kruzhka(orders):
+    image_paths = []
+    not_found_arts = [i.art for i in orders if not i.file_path]
+    found_arts = [i for i in orders if i.file_path]
+    num_string = 1
+    for i in found_arts:
+        count = 1
+        temp_list = []
+        for _ in range(int(i.art.split('-')[-1])):
+            temp_list.append((i.art, i.file_path, num_string, count))
+            count += 1
+        num_string += 1
+        image_paths.extend(temp_list)
+
+    chunks = list(chunk_list(image_paths, 3))
+    output_path = 'output.pdf'
+
+    desired_width_mm = 203
+    desired_height_mm = 90
+    spacing_mm = 7
+
+    points_per_inch = 72  # 1 дюйм = 72 пункта
+
+    desired_width_pt = int(desired_width_mm * points_per_inch / 25.4)
+    desired_height_pt = int(desired_height_mm * points_per_inch / 25.4)
+    spacing_pt = int(spacing_mm * points_per_inch / 25.4)
+    a4_width, a4_height = A4
+    c = canvas.Canvas(output_path, pagesize=A4)
+
+    page_count = 1
+
+    for chunk in chunks:
+        current_x = 10
+        current_y = a4_height - spacing_pt - desired_height_pt
+        for index, (art, img_path, num_string, count) in enumerate(chunk, start=1):
+            try:
+                image = Image.open(img_path)
+                mirrored_image = ImageOps.mirror(image)
+                title = f'{num_string} - {art}#{count}'
+                c.drawInlineImage(mirrored_image, current_x, current_y, width=desired_width_pt, height=desired_height_pt)
+                c.setFont("Helvetica", 10)  # Установите шрифт и размер, которые вам нравятся
+                c.drawString(current_x, current_y - 12, title)
+                current_y += - spacing_pt - desired_height_pt
+
+            except Exception as ex:
+                print(f"Error processing image {img_path}: {ex}")
+        c.showPage()
+        page_count += 1
+    c.save()
 
 
 def created_mix_files(arts: list, name: str, self):
@@ -162,3 +232,20 @@ def created_mix_files(arts: list, name: str, self):
         logger.debug(f'{name} Завершено!')
 
         return order
+
+
+if __name__ == '__main__':
+    created_lists_orders_kruzhka(
+        [
+            FilesOnPrint(art='KRUZHKA-LOVE.IS-1', count=1, file_path=None, status='❌', type='Кружка'),
+            FilesOnPrint(art='KRUZHKA-BRAWLSTARS-LOGO-1', count=1, file_path=None, status='❌', type='Кружка'),
+            FilesOnPrint(art='KRUZHKA-SLOVAPATSANA-1', count=1, file_path=None, status='❌', type='Кружка'),
+            FilesOnPrint(art='KRUZHKA-SLOVAPATSANA-1', count=1, file_path=None, status='❌', type='Кружка'),
+            FilesOnPrint(art='KRUZHKA-LUBIMYIMUZH-1', count=1, file_path=None, status='❌', type='Кружка'),
+            FilesOnPrint(art='KRUZHKA-LUTSHYIDED-1', count=1, file_path=None, status='❌', type='Кружка'),
+            FilesOnPrint(art='KRUZHKA-IMENNAYA_JAROSLAVA-1', count=1,
+                         file_path='D:\\База постеров\\Кружки\\KRUZHKA-IMENNAYA_JAROSLAVA-1.png', status='✅',
+                         type='Кружка'), FilesOnPrint(art='KRUZHKA-HASK-HAZBIN-10', count=1,
+                                                      file_path='D:\\База постеров\\Кружки\\KRUZHKA-HASK-HAZBIN-10.png',
+                                                      status='✅', type='Кружка')]
+    )
