@@ -4,7 +4,6 @@ import shutil
 import time
 
 import PyPDF2
-import cv2
 import pandas as pd
 from PIL import Image, ImageOps
 from PyQt5.QtWidgets import QMessageBox

@@ -360,13 +360,13 @@ def run_script():
             #     check_pdfs(ready_path)
             # except Exception as ex:
             #     logger.error(ex)
-
-            try:
-                os.makedirs(main_path, exist_ok=True)
-                logger.warning('Поиск готовых pdf файлов на сервере...')
-                asyncio.run(scan_files())
-            except Exception as ex:
-                logger.error(ex)
+            #
+            # try:
+            #     os.makedirs(main_path, exist_ok=True)
+            #     logger.warning('Поиск готовых pdf файлов на сервере...')
+            #     asyncio.run(scan_files())
+            # except Exception as ex:
+            #     logger.error(ex)
 
             try:
                 logger.warning('Загрузка с сайта')
