@@ -80,12 +80,12 @@ def copy_image(image_path, count):
         shutil.copy2(image_path, os.path.join(folder_art, f'{i + 2}.{exp}'))
 
 
-def main_download_site():
+def main_download_site(categories, dir_path):
     shutil.rmtree(main_path, ignore_errors=True)
     result_dict_arts = []
-    categories = ['Постеры']
 
-    art_list = [i.replace('.pdf', '').upper() for i in os.listdir(ready_path)]
+    art_list = [os.path.splitext(i)[0].upper() for i in os.listdir(dir_path)]
+    print(art_list)
     data = get_products(categories)
 
     logger.debug(f'Артикулов в ответе с сайта:{len(data)}')
@@ -138,7 +138,7 @@ def main_download_site():
                     except Exception as ex:
                         logger.error(ex)
                         os.remove(os.path.join(folder, file))
-            filename = f'{ready_path}\\{art}.pdf'
+            filename = f'{dir_path}\\{art}.pdf'
             logger.debug(filename)
             if not os.path.exists(filename) and os.path.isdir(folder):
                 one_pdf(folder_path=folder, art=art)

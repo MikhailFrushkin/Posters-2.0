@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import json
 import os
 import shutil
 import sys
@@ -302,10 +303,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.lineEdit.setText(file_name)
                 data = read_excel_file(self.lineEdit.text())
                 self.all_files = data[1][::-1]
-                pprint(data)
                 sorted_data = sorted(data[0], key=lambda x: x.status, reverse=True)
                 self.model = CustomTableModel(sorted_data, self.headers)
-                logger.debug(self.all_files)
                 self.tableView.setModel(self.model)
                 self.tableView.resizeColumnsToContents()
                 self.tableView.setColumnWidth(0, int(self.tableView.width() * 0.1))
@@ -353,43 +352,47 @@ def get_art_column_data(self, colum):
 def run_script():
     while True:
         start = datetime.datetime.now()
-        logger.warning('Проверка файлов на ошибки...')
-        try:
-            check_pdfs(ready_path)
-        except Exception as ex:
-            logger.error(ex)
+        if data['Загрузка кружек']:
+            pass
+        if data['Загрузка постеров'] or not data:
+            # logger.warning('Проверка файлов на ошибки...')
+            # try:
+            #     check_pdfs(ready_path)
+            # except Exception as ex:
+            #     logger.error(ex)
 
-        try:
-            os.makedirs(main_path, exist_ok=True)
-            logger.warning('Поиск готовых pdf файлов на сервере...')
-            asyncio.run(scan_files())
-        except Exception as ex:
-            logger.error(ex)
+            try:
+                os.makedirs(main_path, exist_ok=True)
+                logger.warning('Поиск готовых pdf файлов на сервере...')
+                asyncio.run(scan_files())
+            except Exception as ex:
+                logger.error(ex)
 
-        try:
-            logger.warning('Загрузка с сайта')
-            main_download_site()
-        except Exception as ex:
-            logger.error(ex)
+            try:
+                logger.warning('Загрузка с сайта')
+                categories = ['Постеры']
+                main_download_site(categories, ready_path)
+            except Exception as ex:
+                logger.error(ex)
 
-        logger.warning('Поиск новых стикеров ШК...')
-        try:
-            asyncio.run(async_main_sh())
-        except Exception as ex:
-            logger.error(ex)
+            # logger.warning('Поиск новых стикеров ШК...')
+            # try:
+            #     asyncio.run(async_main_sh())
+            # except Exception as ex:
+            #     logger.error(ex)
+            #
+            # logger.warning('Поиск новых стикеров ШК на диске сайта')
+            # try:
+            #     asyncio.run(async_main_sh(folder_path='/Новая база (1)/Постеры'))
+            # except Exception as ex:
+            #     logger.error(ex)
 
-        logger.warning('Поиск новых стикеров ШК на диске сайта')
-        try:
-            asyncio.run(async_main_sh(folder_path='/Новая база (1)/Постеры'))
-        except Exception as ex:
-            logger.error(ex)
+            try:
+                update_base_postgresql()
+            except Exception as ex:
+                logger.error(ex)
 
-        try:
-            update_base_postgresql()
-        except Exception as ex:
-            logger.error(ex)
-
-        logger.success(f'Обновление завершено {datetime.datetime.now() - start}')
+            logger.success(f'Обновление завершено {datetime.datetime.now() - start}')
 
         time.sleep(1800)
 
@@ -397,16 +400,20 @@ def run_script():
 if __name__ == '__main__':
     semaphore = asyncio.Semaphore(3)
     headers = {"Authorization": f"OAuth {token}"}
-
+    data = {}
+    try:
+        with open('config.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    except Exception as ex:
+        logger.error(ex)
+    print(data)
     app = QtWidgets.QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     w = MainWindow()
     w.show()
+
     if machine_name != admin_name:
-        if 'кружки' in machine_name.lower():
-            pass
-        else:
-            script_thread = Thread(target=run_script)
-            script_thread.daemon = True
-            script_thread.start()
+        script_thread = Thread(target=run_script)
+        script_thread.daemon = True
+        script_thread.start()
     sys.exit(app.exec())
