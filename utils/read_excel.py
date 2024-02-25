@@ -77,6 +77,8 @@ def read_excel_file(file: str) -> tuple:
     for i in art_list:
         files_on_print_single.append(set_dataclass(i, 1))
 
+    for i in files_on_print_single:
+        i.art = i.art.strip()
     return files_on_print, files_on_print_single
 
 

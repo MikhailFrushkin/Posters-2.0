@@ -1,12 +1,10 @@
 import asyncio
 import datetime
-import json
 import os
 import shutil
 import sys
 import time
 from pathlib import Path
-from pprint import pprint
 from threading import Thread
 
 import qdarkstyle
@@ -17,16 +15,14 @@ from PyQt5.QtWidgets import QProgressBar, QFileDialog, QMessageBox
 from loguru import logger
 
 from api_rest import main_download_site
-from config import main_path, ready_path, machine_name, token, admin_name
+from config import main_path, ready_path, machine_name, token, admin_name, ready_path_kruzhka, config_data
 from db import update_base_postgresql
 from scan_shk import async_main_sh
 from upload_files import upload_statistic_files_async
 from utils.check_pdf import check_pdfs
 from utils.created_list_pdf import created_order
-from utils.dow_stickers import main_download_stickers
 from utils.read_excel import read_excel_file
 from utils.update_db import scan_files
-
 
 
 class Ui_MainWindow(object):
@@ -271,7 +267,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         try:
             self.progress_bar.setValue(0)
             logger.debug('Загрузка...')
-            main_download_site()
+            categories = ['Постеры']
+            main_download_site(categories, ready_path)
         except Exception as ex:
             logger.error(ex)
 
@@ -352,40 +349,41 @@ def get_art_column_data(self, colum):
 def run_script():
     while True:
         start = datetime.datetime.now()
-        if data['Загрузка кружек']:
-            pass
-        if data['Загрузка постеров'] or not data:
-            # logger.warning('Проверка файлов на ошибки...')
-            # try:
-            #     check_pdfs(ready_path)
-            # except Exception as ex:
-            #     logger.error(ex)
-            #
-            # try:
-            #     os.makedirs(main_path, exist_ok=True)
-            #     logger.warning('Поиск готовых pdf файлов на сервере...')
-            #     asyncio.run(scan_files())
-            # except Exception as ex:
-            #     logger.error(ex)
+        if config_data['Загрузка кружек']:
+            logger.warning('Загрузка кружек с сайта')
+            main_download_site(categories=['Кружки'], dir_path=ready_path_kruzhka)
+        if config_data['Загрузка постеров'] or not config_data:
+            logger.warning('Проверка файлов на ошибки...')
+            try:
+                check_pdfs(ready_path)
+            except Exception as ex:
+                logger.error(ex)
 
             try:
-                logger.warning('Загрузка с сайта')
+                os.makedirs(main_path, exist_ok=True)
+                logger.warning('Поиск готовых pdf файлов на сервере...')
+                asyncio.run(scan_files())
+            except Exception as ex:
+                logger.error(ex)
+
+            try:
+                logger.warning('Загрузка постеров с сайта')
                 categories = ['Постеры']
                 main_download_site(categories, ready_path)
             except Exception as ex:
                 logger.error(ex)
 
-            # logger.warning('Поиск новых стикеров ШК...')
-            # try:
-            #     asyncio.run(async_main_sh())
-            # except Exception as ex:
-            #     logger.error(ex)
-            #
-            # logger.warning('Поиск новых стикеров ШК на диске сайта')
-            # try:
-            #     asyncio.run(async_main_sh(folder_path='/Новая база (1)/Постеры'))
-            # except Exception as ex:
-            #     logger.error(ex)
+            logger.warning('Поиск новых стикеров ШК...')
+            try:
+                asyncio.run(async_main_sh())
+            except Exception as ex:
+                logger.error(ex)
+
+            logger.warning('Поиск новых стикеров ШК на диске сайта')
+            try:
+                asyncio.run(async_main_sh(folder_path='/Новая база (1)'))
+            except Exception as ex:
+                logger.error(ex)
 
             try:
                 update_base_postgresql()
@@ -394,19 +392,13 @@ def run_script():
 
             logger.success(f'Обновление завершено {datetime.datetime.now() - start}')
 
-        time.sleep(1800)
+        time.sleep(3600)
 
 
 if __name__ == '__main__':
     semaphore = asyncio.Semaphore(3)
     headers = {"Authorization": f"OAuth {token}"}
-    data = {}
-    try:
-        with open('config.json', 'r', encoding='utf-8') as f:
-            data = json.load(f)
-    except Exception as ex:
-        logger.error(ex)
-    print(data)
+
     app = QtWidgets.QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     w = MainWindow()
