@@ -89,8 +89,7 @@ async def main_sh():
 
         for filename, yandex_disk_path in result_dict.items():
             if not filename in files_dir:
-                logger.debug(filename)
-                logger.debug(yandex_disk_path)
+                # logger.info(f'Новый шк {filename}')
                 download_link = await get_download_link(session, yandex_disk_path)
                 if download_link:
                     current_batch.append((download_link, filename))

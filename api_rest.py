@@ -9,8 +9,8 @@ from config import ready_path, main_path, sticker_path, ready_path_kruzhka
 from utils.created_pdf import one_pdf
 
 headers = {'Content-Type': 'application/json'}
-domain = 'http://127.0.0.1:8000/api_rest'
-# domain = 'https://mycego.online/api_rest'
+# domain = 'http://127.0.0.1:8000/api_rest'
+domain = 'https://mycego.online/api_rest'
 
 
 def get_products(categories: list):
@@ -46,13 +46,13 @@ def create_download_data(item):
     else:
         result = []
         url_data = get_info_publish_folder(item['directory_url'])
-        print(url_data)
         if url_data:
-            for item in url_data:
-                item_name: str = item['name']
-                if item_name.split('.')[0].isdigit() or 'принт' in item_name.lower() or (
-                        item_name.endswith('.pdf') and 'изобра' not in item_name):
-                    result.append(item)
+            for file in url_data:
+                item_name: str = file['name'].lower()
+                if item_name.endswith('.pdf') and 'макет' not in item_name and 'изображ' not in item_name:
+                    result.append(file)
+                elif item_name.split('.')[0].isdigit() or 'принт' in item_name:
+                    result.append(file)
 
             item['url_data'] = result
             return item
@@ -66,7 +66,7 @@ def download_file(destination_path, url):
                 for chunk in response.iter_content(chunk_size=1024):
                     if chunk:  # filter out keep-alive new chunks
                         file.write(chunk)
-            # logger.info(f"File downloaded successfully: {destination_path}")
+            logger.info(f"File downloaded successfully: {destination_path}")
         else:
             logger.error(f"Error {response.status_code} while downloading file: {url}")
     except requests.RequestException as e:
@@ -84,24 +84,25 @@ def main_download_site(categories, dir_path):
     shutil.rmtree(main_path, ignore_errors=True)
     result_dict_arts = []
 
-    art_list = [os.path.splitext(i)[0].upper() for i in os.listdir(dir_path)]
-    print(art_list)
+    art_list = [os.path.splitext(i)[0].lower() for i in os.listdir(dir_path)]
     data = get_products(categories)
+    with open(f'{categories[0]}.json', 'w') as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
 
     logger.debug(f'Артикулов в ответе с сайта:{len(data)}')
-    data = [item for item in data if item['art'] not in art_list]
+    data = [item for item in data if item['art'].lower() not in art_list]
     logger.success(f'Артикулов для загрузки:{len(data)}')
-    for item in data[:2]:
+
+    for item in data:
         download_data = create_download_data(item)
         if download_data:
             result_dict_arts.append(download_data)
-    with open(f'json {categories[0]}.json', 'w') as f:
-        json.dump(result_dict_arts, f, indent=4, ensure_ascii=False)
+    # with open(f'json {categories[0]}.json', 'w') as f:
+    #     json.dump(result_dict_arts, f, indent=4, ensure_ascii=False)
     #
     # with open('json.json', 'r') as f:
     #     data = json.load(f)
     count_task = len(result_dict_arts)
-
     for index, item in enumerate(result_dict_arts, start=1):
         art = item['art']
         count = item['quantity']
@@ -144,7 +145,6 @@ def main_download_site(categories, dir_path):
                         try:
                             shutil.move(os.path.join(folder, file), sticker_path)
                         except Exception as ex:
-                            logger.error(ex)
                             os.remove(os.path.join(folder, file))
                 filename = f'{dir_path}\\{art}.pdf'
                 logger.debug(filename)
@@ -155,7 +155,13 @@ def main_download_site(categories, dir_path):
                 logger.success(f'{index}/{count_task} - {item["art"]}')
             except Exception as ex:
                 logger.error(ex)
-            break
+
+    for file in os.listdir(ready_path_kruzhka):
+        if file.endswith('.pdf'):
+            try:
+                shutil.move(os.path.join(ready_path_kruzhka, file), sticker_path)
+            except:
+                os.remove(os.path.join(ready_path_kruzhka, file))
 
 
 if __name__ == '__main__':

@@ -1,34 +1,57 @@
+import json
 import os
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from loguru import logger
 from environs import Env
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 
+logger.add(
+    f"logs/check_bd_{datetime.now().date()}.log",
+    rotation="200 MB",
+    level="INFO",
+    format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {file!s} | {line} | {message}"
+)
+
 path_root = Path(__file__).resolve().parent
 env = Env()
 env.read_env()
 
-machine_name = env.str('machine_name')
+admin_name = 'Mikhail'
+
 dbname = env.str('dbname')
 user = env.str('user')
 password = env.str('password')
 host = env.str('host')
 
 token = env.str('token')
-main_path = env.str('main_path')
-ready_path = env.str('ready_path')
-ready_path_kruzhka = env.str('ready_path_kruzhka')
-sticker_path = env.str('sticker_path')
+
 path_ready_posters_y_disc = env.str('path_ready_posters_y_disc')
 path_base_y_disc = env.str('path_base_y_disc')
-acrobat_path = env.str('acrobat_path')
 google_sticker_path = env.str('google_sticker_path')
 id_google_table = env.str('id_google_table')
 
+data = {}
+try:
+    with open('config.json', 'r', encoding='utf-8') as f:
+        config_data = json.load(f)
+except Exception as ex:
+    logger.error(ex)
+# logger.warning(config_data)
+
+try:
+    machine_name = config_data['machine_name']
+    main_path = config_data['main_path']
+    ready_path = config_data['ready_path']
+    ready_path_kruzhka = config_data['ready_path_kruzhka']
+    sticker_path = config_data['sticker_path']
+    acrobat_path = config_data['acrobat_path']
+except Exception as ex:
+    logger.error(f'Ошибка чтения файла настроек: {ex}')
+
 list_dirs = [main_path, ready_path, ready_path_kruzhka, sticker_path, 'files']
-admin_name = 'Ноут'
 
 for directory in list_dirs:
     os.makedirs(directory, exist_ok=True)
