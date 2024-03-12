@@ -5,7 +5,7 @@ from pprint import pprint
 from loguru import logger
 import requests
 
-from config import ready_path, main_path, sticker_path, ready_path_kruzhka
+from config import ready_path, main_path, sticker_path, ready_path_kruzhka, debug
 from utils.created_pdf import one_pdf
 
 headers = {'Content-Type': 'application/json'}
@@ -96,10 +96,12 @@ def main_download_site(categories, dir_path):
     for item in data:
         download_data = create_download_data(item)
         if download_data:
+            if debug:
+                logger.info(download_data)
             result_dict_arts.append(download_data)
-    # with open(f'json {categories[0]}.json', 'w') as f:
-    #     json.dump(result_dict_arts, f, indent=4, ensure_ascii=False)
-    #
+    with open(f'json {categories[0]}.json', 'w') as f:
+        json.dump(result_dict_arts, f, indent=4, ensure_ascii=False)
+
     # with open('json.json', 'r') as f:
     #     data = json.load(f)
     count_task = len(result_dict_arts)
@@ -115,9 +117,14 @@ def main_download_site(categories, dir_path):
             logger.error(f'Не понятный {art} {ex}')
             continue
         if 'Кружки' in categories:
-            for i in item['url_data']:
+            for index_too, i in enumerate(item['url_data'], start=1):
+                print(i)
                 exep = i['name'].split('.')[-1]
-                destination_path = os.path.join(dir_path, f'{art}.{exep}')
+                if count == 2:
+                    file_name = f'{art}_{index_too}.{exep}'
+                else:
+                    file_name = f'{art}.{exep}'
+                destination_path = os.path.join(dir_path, file_name)
                 download_file(destination_path, i['file'])
         else:
             os.makedirs(folder, exist_ok=True)

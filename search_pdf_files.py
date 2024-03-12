@@ -70,7 +70,7 @@ async def get_download_link(session, token, file_path):
             else:
                 return None
     except asyncio.TimeoutError:
-        print(f"Время ожидания ответа от сервера истекло для файла '{file_path}'.")
+        logger.error(f"Время ожидания ответа от сервера истекло для файла '{file_path}'.")
         return None
 
 
@@ -83,14 +83,14 @@ async def download_file(session, url, filename):
                 if response.status == 200:
                     full_path = os.path.join(OUTPUT_FOLDER, filename)
                     async with aiofiles.open(full_path, 'wb') as f:
-                        print(f'Загрузка {filename}')
+                        logger.success(f'Загрузка {filename}')
                         while True:
                             chunk = await response.content.read(1024)
                             if not chunk:
                                 break
                             await f.write(chunk)
         except Exception as e:
-            print(f"Error downloading {filename}: {e}")
+            logger.error(f"Error downloading {filename}: {e}")
 
 
 async def main():

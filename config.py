@@ -2,11 +2,14 @@ import json
 import os
 from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
-from loguru import logger
+
 from environs import Env
+from loguru import logger
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
+from pathlib import Path
+
+debug = False
 
 logger.add(
     f"logs/check_bd_{datetime.now().date()}.log",
@@ -18,7 +21,6 @@ logger.add(
 path_root = Path(__file__).resolve().parent
 env = Env()
 env.read_env()
-
 admin_name = 'Mikhail'
 
 dbname = env.str('dbname')
@@ -48,13 +50,13 @@ try:
     ready_path_kruzhka = config_data['ready_path_kruzhka']
     sticker_path = config_data['sticker_path']
     acrobat_path = config_data['acrobat_path']
+    list_dirs = [main_path, ready_path, ready_path_kruzhka, sticker_path, 'files']
+
+    for directory in list_dirs:
+        os.makedirs(directory, exist_ok=True)
+
 except Exception as ex:
     logger.error(f'Ошибка чтения файла настроек: {ex}')
-
-list_dirs = [main_path, ready_path, ready_path_kruzhka, sticker_path, 'files']
-
-for directory in list_dirs:
-    os.makedirs(directory, exist_ok=True)
 
 
 class ProgressBar:
@@ -89,7 +91,7 @@ class SearchProgress:
 class FilesOnPrint:
     art: str
     count: int
-    file_path: str
+    file_path: list
     status: str = '❌'
     type: str = 'Постер'
 

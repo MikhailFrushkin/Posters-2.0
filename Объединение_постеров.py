@@ -60,13 +60,8 @@ def compression_pdf(pdf_file_path, output_pdf_path):
             # Удаляем временное изображение
             img_pil.close()
 
-    # Закрываем PDF-документ
     output_pdf.save()
-
-    # Закрываем исходный PDF
     pdf_document.close()
-
-    print("Готово!")
 
 
 def merge_pdfs(input_paths, output_path, count=100):
@@ -82,7 +77,7 @@ def merge_pdfs(input_paths, output_path, count=100):
 
         for index, input_path in enumerate(current_group_paths, start=1):
             try:
-                print(index, input_path)
+                logger.info(index, input_path)
                 with open(input_path, 'rb') as pdf_file:
                     pdf_reader = PyPDF2.PdfReader(pdf_file)
                     # Add all pages from PdfReader to PdfWriter
