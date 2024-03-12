@@ -1,6 +1,8 @@
 import fitz
 import os
 
+from loguru import logger
+
 
 def check_pdf(file_path):
     try:
@@ -8,7 +10,7 @@ def check_pdf(file_path):
             if pdf_document.page_count != 0:
                 return True
     except Exception as e:
-        print(f"Ошибка при открытии файла {file_path}: {e}")
+        logger.error(f"Ошибка при открытии файла {file_path}: {e}")
         return False
 
 
@@ -17,7 +19,7 @@ def check_pdfs(folder_path):
         if file_name.endswith(".pdf"):
             file_path = os.path.join(folder_path, file_name)
             if not check_pdf(file_path):
-                print(f"Файл {file_name} содержит ошибки, Удален!")
+                logger.error(f"Файл {file_name} содержит ошибки, Удален!")
                 os.remove(file_path)
 
 

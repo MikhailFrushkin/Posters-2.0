@@ -37,7 +37,7 @@ def read_codes_on_google(CREDENTIALS_FILE='google_acc.json'):
     rows = data[1:]
     # Проверка количества столбцов и создание DataFrame
     if len(headers) != len(rows[0]):
-        print("Ошибка: количество столбцов не совпадает с количеством значений.")
+        logger.error("Ошибка: количество столбцов не совпадает с количеством значений.")
     else:
         df = pd.DataFrame(rows, columns=headers)
         df_in_xlsx(df, 'Таблица гугл')

@@ -316,9 +316,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """Ивент на кнопку создать файлы"""
         filename = os.path.basename(self.lineEdit.text())
         if filename:
-            self.name_doc = (os.path.abspath(self.lineEdit.text()).split('\\')[-1]
-                             .replace('.xlsx', '')
-                             .replace('.csv', ''))
+            self.name_doc = os.path.splitext(os.path.basename(self.lineEdit.text()))[0]
             try:
                 created_order(self)
             except Exception as ex:

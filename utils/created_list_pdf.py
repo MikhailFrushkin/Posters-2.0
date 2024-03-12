@@ -45,8 +45,8 @@ def merge_pdfs_stickers(arts_paths, output_path, progress=None):
                 pdf_reader = PyPDF2.PdfReader(pdf_file)
                 for page in pdf_reader.pages:
                     pdf_writer.add_page(page)
-            if progress:
-                progress.update_progress()
+            # if progress:
+            #     progress.update_progress()
         except Exception:
             pass
     current_output_path = f"{output_path}.pdf"
@@ -108,7 +108,6 @@ def merge_pdfs(input_paths, output_path, count, self, progress):
 
 def created_order(self):
     arts_all = self.all_files
-    print(arts_all)
     shutil.rmtree('Файлы на печать', ignore_errors=True)
     os.makedirs('Файлы на печать', exist_ok=True)
     orders = []
@@ -135,7 +134,7 @@ def created_order(self):
 
     if orders_kruzhka:
         orders_kruzhka.reverse()
-        progress = ProgressBar(len(orders_kruzhka) * 2, self, 1)
+        progress = ProgressBar(len(orders_kruzhka), self, 1)
         orders.extend(created_lists_orders_kruzhka(orders_kruzhka, self, progress))
 
     if machine_name != admin_name:
@@ -168,11 +167,17 @@ def created_lists_orders_kruzhka(orders, self, progress):
             quantity = int(i.art.split('-')[-1])
         except:
             quantity = 1
-        for _ in range(quantity):
-            temp_list.append((i.art, i.file_path, num_string, count))
-            count += 1
-        num_string += 1
 
+        if quantity == 2:
+            for file in i.file_path:
+                temp_list.append((i.art, file, num_string, count))
+                count += 1
+        else:
+            for _ in range(quantity):
+                temp_list.append((i.art, i.file_path[0], num_string, count))
+                count += 1
+
+        num_string += 1
         count_art += 1
         image_paths.extend(temp_list)
         all_arts.append((machine_name, i.art, count_art, 'Кружка', quantity, self.name_doc))
@@ -181,8 +186,8 @@ def created_lists_orders_kruzhka(orders, self, progress):
     output_path = 'Файлы на печать/Кружки.pdf'
 
     desired_width_mm = 203
-    desired_height_mm = 90
-    spacing_mm = 7
+    desired_height_mm = 91
+    spacing_mm = 5
     points_per_inch = 72  # 1 дюйм = 72 пункта
 
     add_width = 0
@@ -214,7 +219,8 @@ def created_lists_orders_kruzhka(orders, self, progress):
                 c.drawInlineImage(mirrored_image, current_x, current_y, width=desired_width_pt,
                                   height=desired_height_pt)
                 c.setFont("Helvetica", 10)  # Установите шрифт и размер, которые вам нравятся
-                c.drawString(current_x, current_y - 12, title)
+                #Подпись под картинкой
+                # c.drawString(current_x, current_y - 12, title)
                 current_y += - spacing_pt - desired_height_pt
                 if num_string not in num_list:
                     progress.update_progress()

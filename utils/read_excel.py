@@ -4,30 +4,38 @@ from typing import List
 import pandas as pd
 from loguru import logger
 
-from config import FilesOnPrint, ready_path, ready_path_kruzhka
+from config import FilesOnPrint, ready_path, ready_path_kruzhka, debug
 
 
 def read_excel_file(file: str) -> tuple:
+    # def search_file(art, directory):
+    #     for filename in os.listdir(directory):
+    #         base_name, extension = os.path.splitext(filename)
+    #         if base_name.strip().lower() == art.strip().lower():
+    #             return os.path.abspath(os.path.join(directory, filename))
+    #     return None
     def search_file(art, directory):
+        files = []
         for filename in os.listdir(directory):
-            base_name, extension = os.path.splitext(filename)
-            if base_name.strip().lower() == art.strip().lower():
-                return os.path.abspath(os.path.join(directory, filename))
-        return None
+            if art.strip().lower() in filename.lower():
+                files.append(os.path.abspath(os.path.join(directory, filename)))
+                if '2' not in filename:
+                    break
+        return files
 
     def set_dataclass(name, count):
         name = name.strip()
         if 'KRUZHKA' in name:
             type_art = 'Кружка'
-            status = search_file(art=name, directory=ready_path_kruzhka)
+            directory = ready_path_kruzhka
         else:
             type_art = 'Постер'
-            status = search_file(art=name, directory=ready_path)
+            directory = ready_path
+        files = search_file(art=name, directory=directory)
         return FilesOnPrint(art=name, count=count,
-                            status='✅' if status else '❌',
+                            status='✅' if files else '❌',
                             type=type_art,
-                            file_path=status
-                            )
+                            file_path=files)
 
     df = pd.DataFrame()
     art_list = []
@@ -79,6 +87,9 @@ def read_excel_file(file: str) -> tuple:
 
     for i in files_on_print_single:
         i.art = i.art.strip()
+    if debug:
+        logger.debug(files_on_print)
+        logger.debug(files_on_print_single)
     return files_on_print, files_on_print_single
 
 
