@@ -18,6 +18,7 @@ def check_pdfs(folder_path):
     for file_name in os.listdir(folder_path):
         if file_name.endswith(".pdf"):
             file_path = os.path.join(folder_path, file_name)
+            print(file_name)
             if not check_pdf(file_path):
                 logger.error(f"Файл {file_name} содержит ошибки, Удален!")
                 os.remove(file_path)

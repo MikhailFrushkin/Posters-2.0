@@ -155,7 +155,6 @@ def created_lists_orders_kruzhka(orders, self, progress):
     global count_art
     image_paths = []
     all_arts = []
-    not_found_arts = [i.art for i in orders if not i.file_path]
     found_arts = [i for i in orders if i.file_path]
     arts = [i.art for i in orders if i.file_path]
     num_string = 1

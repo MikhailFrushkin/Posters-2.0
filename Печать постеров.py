@@ -406,4 +406,5 @@ if __name__ == '__main__':
         script_thread = Thread(target=run_script)
         script_thread.daemon = True
         script_thread.start()
+    time.sleep(10)
     sys.exit(app.exec())
