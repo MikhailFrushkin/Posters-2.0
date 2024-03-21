@@ -3,7 +3,6 @@ import os
 from dataclasses import dataclass
 from datetime import datetime
 
-from environs import Env
 from loguru import logger
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
@@ -19,32 +18,30 @@ logger.add(
 )
 
 path_root = Path(__file__).resolve().parent
-env = Env()
-env.read_env()
+
 admin_name = 'Mikhail'
-
-dbname = env.str('dbname')
-user = env.str('user')
-password = env.str('password')
-host = env.str('host')
-
-token = env.str('token')
-
-path_ready_posters_y_disc = env.str('path_ready_posters_y_disc')
-path_base_y_disc = env.str('path_base_y_disc')
-google_sticker_path = env.str('google_sticker_path')
-id_google_table = env.str('id_google_table')
-
 data = {}
 try:
     with open('config.json', 'r', encoding='utf-8') as f:
         config_data = json.load(f)
 except Exception as ex:
     logger.error(ex)
-# logger.warning(config_data)
 
 try:
+    dbname = config_data['dbname']
+    user = config_data['user']
+    password = config_data['password']
+    host = config_data['host']
+
+    token = config_data['token']
+
+    path_ready_posters_y_disc = config_data['path_ready_posters_y_disc']
+    path_base_y_disc = config_data['path_base_y_disc']
+    google_sticker_path = config_data['google_sticker_path']
+    id_google_table = config_data['id_google_table']
+
     machine_name = config_data['machine_name']
+
     main_path = config_data['main_path']
     ready_path = config_data['ready_path']
     ready_path_kruzhka = config_data['ready_path_kruzhka']

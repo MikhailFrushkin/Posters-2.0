@@ -1,6 +1,6 @@
 {
-  "Загрузка постеров": 0,
-  "Загрузка кружек": 1,
+  "Загрузка постеров": 1,
+  "Загрузка кружек": 0,
   "Увеличить ширину макета кружки на": 0,
   "Увеличить высоту макета кружки на": 0,
   "main_path": "D:\\База постеров\\Скачанные файлы",
@@ -8,5 +8,14 @@
   "ready_path_kruzhka": "D:\\Кружки",
   "sticker_path": "D:\\База значков\\Значки ШК",
   "acrobat_path": "C:\\Program Files\\Adobe\\Acrobat DC\\Acrobat\\Acrobat.exe",
-  "machine_name": "Mikhail"
+  "machine_name": "Mikhail",
+  "token":"y0_AgAAAABWiJ78AAnrzgAAAADjYERnWFIrtAnJTZmrrJ6nf5LPjn6zg6A",
+  "path_ready_posters_y_disc":"/Компьютер HOME-PC/Ready pdf compress",
+  "path_base_y_disc":"/Значки ANIKOYA  02 23/03 - POSUTA (плакаты)",
+  "google_sticker_path":"18UcnBXbN5q7yrF898CjW0m-iXFs1pws4",
+  "id_google_table":"1IaXufU8CYTQsMDxEvynBzlRAFm_G43Kll0PO3lvQDxA",
+  "dbname": "posters",
+  "user": "mikhail",
+  "password": "123456",
+  "host": "94.228.122.52"
 }
