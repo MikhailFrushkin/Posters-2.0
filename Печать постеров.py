@@ -4,6 +4,8 @@ import os
 import shutil
 import sys
 import time
+import winreg
+
 from pathlib import Path
 from threading import Thread
 
@@ -293,8 +295,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def evt_btn_open_file_clicked(self):
         """Ивент на кнопку загрузить файл"""
 
-        file_name, _ = QFileDialog.getOpenFileName(self, 'Загрузить файл', str(self.current_dir),
-                                                   'CSV файлы (*.csv *.xlsx)')
+        def get_download_path():
+            if os.name == 'nt':
+                sub_key = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders'
+                downloads_guid = '{374DE290-123F-4565-9164-39C4925E467B}'
+                with winreg.OpenKey(winreg.HKEY_CURRENT_USER, sub_key) as key:
+                    location = winreg.QueryValueEx(key, downloads_guid)[0]
+                return location
+            else:
+                return os.path.join(os.path.expanduser('~'), 'downloads')
+
+        try:
+            file_name, _ = QFileDialog.getOpenFileName(self, 'Загрузить файл', get_download_path(),
+                                                       'CSV файлы (*.csv *.xlsx)')
+        except Exception as ex:
+            logger.error(ex)
+            file_name, _ = QFileDialog.getOpenFileName(self, 'Загрузить файл', str(self.current_dir),
+                                                       'CSV файлы (*.csv *.xlsx)')
         if file_name:
             try:
                 self.lineEdit.setText(file_name)

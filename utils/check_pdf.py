@@ -22,6 +22,7 @@ def check_pdfs(folder_path):
             if not check_pdf(file_path):
                 logger.error(f"Файл {file_name} содержит ошибки, Удален!")
                 os.remove(file_path)
+    print('\n')
 
 
 if __name__ == "__main__":

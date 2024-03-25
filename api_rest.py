@@ -96,8 +96,8 @@ def main_download_site(categories, dir_path):
                          .lower().strip())
             art_list_in_folder.append(file_name)
     data = get_products(categories)
-    with open(f'{categories[0]}.json', 'w') as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
+    # with open(f'{categories[0]}.json', 'w') as f:
+    #     json.dump(data, f, indent=4, ensure_ascii=False)
 
     logger.debug(f'Артикулов в ответе с сайта:{len(data)}')
     data = [item for item in data if item['art'].lower() not in art_list_in_folder]
