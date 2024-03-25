@@ -5,7 +5,7 @@ from pprint import pprint
 from loguru import logger
 import requests
 
-from config import ready_path, main_path, sticker_path, ready_path_kruzhka, debug
+from config import ready_path, main_path, sticker_path
 from utils.created_pdf import one_pdf
 
 headers = {'Content-Type': 'application/json'}
