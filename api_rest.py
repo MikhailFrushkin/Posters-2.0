@@ -5,7 +5,7 @@ from pprint import pprint
 from loguru import logger
 import requests
 
-from config import ready_path, main_path, sticker_path
+from config import ready_path, main_path, sticker_path, debug, ready_path_kruzhka
 from utils.created_pdf import one_pdf
 
 headers = {'Content-Type': 'application/json'}
@@ -86,13 +86,13 @@ def main_download_site(categories, dir_path):
 
     art_list_in_folder = []
     for file in os.listdir(dir_path):
-        if os.path.isfile(os.path.join(dir_path, file)) and (file.endswith('.png') or file.endswith('.jpg')):
+        if os.path.isfile(os.path.join(dir_path, file)):
             file_name = (file.replace('_1.png', '').replace('_2.png', '').
                          replace('_3.png', '').replace('_4.png', '').
                          replace('_5.png', '').replace('_1.jpg', '').
                          replace('_2.jpg', '').replace('_3.jpg', '').
                          replace('_4.jpg', '').replace('_5.jpg', '').
-                         replace('.jpg', '').replace('.png', '')
+                         replace('.jpg', '').replace('.png', '').replace('.pdf', '')
                          .lower().strip())
             art_list_in_folder.append(file_name)
     data = get_products(categories)

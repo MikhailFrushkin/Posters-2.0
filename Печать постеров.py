@@ -237,14 +237,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # except Exception as ex:
         #     logger.error(ex)
 
-        try:
-            self.progress_bar.setValue(0)
-
-            os.makedirs(main_path, exist_ok=True)
-            logger.debug('Поиск готовых pdf файлов на сервере...')
-            asyncio.run(scan_files(self))
-        except Exception as ex:
-            logger.error(ex)
+        # try:
+        #     self.progress_bar.setValue(0)
+        #
+        #     os.makedirs(main_path, exist_ok=True)
+        #     logger.debug('Поиск готовых pdf файлов на сервере...')
+        #     asyncio.run(scan_files(self))
+        # except Exception as ex:
+        #     logger.error(ex)
 
         # try:
         #     self.progress_bar.setValue(0)
