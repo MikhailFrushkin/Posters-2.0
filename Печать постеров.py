@@ -371,24 +371,24 @@ def run_script():
             except Exception as ex:
                 logger.error(ex)
 
-            logger.warning('Поиск новых стикеров ШК...')
-            try:
-                asyncio.run(async_main_sh())
-            except Exception as ex:
-                logger.error(ex)
+        logger.warning('Поиск новых стикеров ШК...')
+        try:
+            asyncio.run(async_main_sh())
+        except Exception as ex:
+            logger.error(ex)
 
-            logger.warning('Поиск новых стикеров ШК на диске сайта')
-            try:
-                asyncio.run(async_main_sh(folder_path='/Новая база (1)'))
-            except Exception as ex:
-                logger.error(ex)
+        logger.warning('Поиск новых стикеров ШК на диске сайта')
+        try:
+            asyncio.run(async_main_sh(folder_path='/Новая база (1)'))
+        except Exception as ex:
+            logger.error(ex)
 
-            try:
-                update_base_postgresql()
-            except Exception as ex:
-                logger.error(ex)
+        try:
+            update_base_postgresql()
+        except Exception as ex:
+            logger.error(ex)
 
-            logger.success(f'Обновление завершено {datetime.datetime.now() - start}')
+        logger.success(f'Обновление завершено {datetime.datetime.now() - start}')
 
         time.sleep(3600)
 
@@ -406,5 +406,4 @@ if __name__ == '__main__':
         script_thread = Thread(target=run_script)
         script_thread.daemon = True
         script_thread.start()
-    time.sleep(10)
     sys.exit(app.exec())

@@ -48,7 +48,7 @@ def create_download_data(item):
         url_data = get_info_publish_folder(item['directory_url'])
         if url_data:
             for file in url_data:
-                item_name: str = file['name'].lower()
+                item_name: str = file['name'].lower().strip()
                 if item_name.endswith('.pdf') and 'макет' not in item_name and 'изображ' not in item_name:
                     result.append(file)
                 elif item_name.split('.')[0].isdigit() or 'принт' in item_name:
@@ -84,13 +84,23 @@ def main_download_site(categories, dir_path):
     shutil.rmtree(main_path, ignore_errors=True)
     result_dict_arts = []
 
-    art_list = [os.path.splitext(i)[0].lower() for i in os.listdir(dir_path)]
+    art_list_in_folder = []
+    for file in os.listdir(dir_path):
+        if os.path.isfile(os.path.join(dir_path, file)) and (file.endswith('.png') or file.endswith('.jpg')):
+            file_name = (file.replace('_1.png', '').replace('_2.png', '').
+                         replace('_3.png', '').replace('_4.png', '').
+                         replace('_5.png', '').replace('_1.jpg', '').
+                         replace('_2.jpg', '').replace('_3.jpg', '').
+                         replace('_4.jpg', '').replace('_5.jpg', '').
+                         replace('.jpg', '').replace('.png', '')
+                         .lower().strip())
+            art_list_in_folder.append(file_name)
     data = get_products(categories)
     with open(f'{categories[0]}.json', 'w') as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
     logger.debug(f'Артикулов в ответе с сайта:{len(data)}')
-    data = [item for item in data if item['art'].lower() not in art_list]
+    data = [item for item in data if item['art'].lower() not in art_list_in_folder]
     logger.success(f'Артикулов для загрузки:{len(data)}')
 
     for item in data:
@@ -118,7 +128,6 @@ def main_download_site(categories, dir_path):
             continue
         if 'Кружки' in categories:
             for index_too, i in enumerate(item['url_data'], start=1):
-                print(i)
                 exep = i['name'].split('.')[-1]
                 if count == 2:
                     file_name = f'{art}_{index_too}.{exep}'

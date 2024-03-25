@@ -23,7 +23,11 @@ def find_files_in_directory(directory, file_list):
 
     for file in os.listdir(directory):
         if os.path.isfile(os.path.join(directory, file)):
-            file_name = file.replace('.pdf', '').lower().strip()
+            file_name = (file.replace('_1.pdf', '').
+                         replace('_2.pdf', '').
+                         replace('_3.pdf', '').
+                         replace('.pdf', '').
+                         lower().strip())
             file_dict[file_name] = os.path.join(directory, file)
 
     for poster in file_list:
@@ -32,7 +36,6 @@ def find_files_in_directory(directory, file_list):
             found_files.append(file_dict[file_name])
         else:
             not_found_files.append(poster)
-
     return found_files, not_found_files
 
 
